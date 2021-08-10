@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Javascript Calling APIs</title>
+  </head>
+  <body>
+    <h1>Nakanosec - Subdomain Scanner Javascript</h1>
+
+
+    <input type="text" placeholder="Type something..." id="myInput">
+    <button type="button" onclick="getInputValue();">Get Value</button>
+ 
+     <h2>Output :</h2>
+ <p id="demo"></p>
+ 
+ <script>
+      function getInputValue() {
+        // Selecting the input element and get its value
+        var inputVal = document.getElementById("myInput").value;
+
+        //var town ='garstang';
+        var anuan = inputVal;
+
+        var url = "https://api.hackertarget.com/hostsearch/?q";
+
+        var requestOptions = {
+          method: 'GET',
+          redirect: 'follow'
+
+        };
+
+        fetch(url + '=' + anuan, requestOptions)
+          .then(response => response.text())
+          // .then(result => console.log(result))
+          .then(result => document.getElementById("demo").innerText =
+            (result))
+          .catch(error => console.log('error', error));  
+      }
+    </script>
+
+  </body>
+</html>
