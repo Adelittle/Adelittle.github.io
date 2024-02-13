@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<!-- https://github.com/Javelinblog/PowerShell-Encoded-Commands-Tool -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Identifier Online Tools</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 80%;
+            margin: 50px auto;
+        }
+
+        .hash-analyzer {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .text-area {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            box-sizing: border-box;
+            margin-bottom: 10px; /* Adjusted margin */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+        }
+
+        .result {
+            margin-top: 10px;
+            color: #333;
+        }
+
+        .analyze-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .analyze-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="hash-analyzer">
+        <div class="title">Hash Analyzer Tool</div>
+        <textarea class="text-area" placeholder="Enter hash here..." id="inputBox"></textarea>
+        <button class="analyze-button" onclick="analyzeHash()">Analyze</button>
+        <div class="result" id="resultBox"></div>
+    </div>
+</div>
+
+<script>
+    function analyzeHash() {
+        // Get the input value
+        const input = document.getElementById('inputBox').value.trim();
+
+        // Define hash detectors
+        const hashDetectors = [
+    { type: 'Argon2id', regex: /\$argon2id\$[^\$]+\$[^\$]+\$.{22}/},
+    { type: 'Argon2i', regex: /\$argon2i\$[^\$]+\$[^\$]+\$.{22}/},
+    { type: 'Argon2d', regex: /\$argon2d\$[^\$]+\$[^\$]+\$.{22}/},
+    { type: 'MD5', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5($pass.$salt)', regex: /^[0-9a-fA-F]{32}:\d+$/ },
+    { type: 'md5($salt.$pass)', regex: /^[0-9a-fA-F]{32}:\d+$/ },
+    { type: 'md5(utf16le($pass).$salt)', regex: /^[0-9a-fA-F]{32}:\d+$/ },
+    { type: 'md5($salt.utf16le($pass))', regex: /^[0-9a-fA-F]{32}:\d+$/ },
+    { type: 'HMAC-MD5 (key = $pass)', regex: /^[0-9a-fA-F]{32}:\d+$/ },
+    { type: 'HMAC-MD5 (key = $salt)', regex: /^[0-9a-fA-F]{32}:\d+$/ },
+    { type: 'md5(utf16le($pass))', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'SHA1', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'sha1($pass.$salt)', regex: /^[0-9a-fA-F]{40}:\d+$/ },
+    { type: 'sha1($salt.$pass)', regex: /^[0-9a-fA-F]{40}:\d+$/ },
+    { type: 'sha1(utf16le($pass).$salt)', regex: /^[0-9a-fA-F]{40}:\d+$/ },
+    { type: 'sha1($salt.utf16le($pass))', regex: /^[0-9a-fA-F]{40}:\d+$/ },
+    { type: 'HMAC-SHA1 (key = $pass)', regex: /^[0-9a-fA-F]{40}:\d+$/ },
+    { type: 'HMAC-SHA1 (key = $salt)', regex: /^[0-9a-fA-F]{40}:\d+$/ },
+    { type: 'sha1(utf16le($pass))', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'MySQL323', regex: /^[0-9a-fA-F]{16}$/ },
+    { type: 'MySQL4.1/MySQL5', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'phpass, WordPress (MD5)', regex: /^[0-9a-fA-F]{8}:\d+$/ },
+    { type: 'Joomla (MD5)', regex: /^[0-9a-fA-F]{32}:\d+$/ },
+    { type: 'phpass, phpBB3 (MD5)', regex: /^[0-9a-fA-F]{8}:\d+$/ },
+    { type: 'md5crypt, MD5 (Unix), Cisco-IOS $1$ (MD5) 2', regex: /^\$1\$.{8}\$[0-9a-fA-F]{22}$/ },
+    { type: 'Juniper IVE', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'BLAKE2b-512', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'BLAKE2b-512($pass.$salt)', regex: /^[0-9a-fA-F]{128}:\d+$/ },
+    { type: 'BLAKE2b-512($salt.$pass)', regex: /^[0-9a-fA-F]{128}:\d+$/ },
+    { type: 'MD4', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'NTLM', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Domain Cached Credentials (DCC), MS Cache', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'SHA2-224', regex: /^[0-9a-fA-F]{56}$/ },
+    { type: 'SHA2-256', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'sha256($pass.$salt)', regex: /^[0-9a-fA-F]{64}:\d+$/ },
+    { type: 'sha256($salt.$pass)', regex: /^[0-9a-fA-F]{64}:\d+$/ },
+    { type: 'sha256(utf16le($pass).$salt)', regex: /^[0-9a-fA-F]{64}:\d+$/ },
+    { type: 'sha256($salt.utf16le($pass))', regex: /^[0-9a-fA-F]{64}:\d+$/ },
+    { type: 'HMAC-SHA256 (key = $pass)', regex: /^[0-9a-fA-F]{64}:\d+$/ },
+    { type: 'HMAC-SHA256 (key = $salt)', regex: /^[0-9a-fA-F]{64}:\d+$/ },
+    { type: 'sha256(utf16le($pass))', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'descrypt, DES (Unix), Traditional DES', regex: /^.{0,2}[a-zA-Z0-9./]{0,13}$/ },
+    { type: 'Apache $apr1$ MD5, md5apr1, MD5 (APR) 2', regex: /^\$apr1\$[0-9a-zA-Z./]{8}\$[0-9a-zA-Z./]{22}$/ },
+    { type: 'SHA2-512', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'sha512($pass.$salt)', regex: /^[0-9a-fA-F]{128}:\d+$/ },
+    { type: 'sha512($salt.$pass)', regex: /^[0-9a-fA-F]{128}:\d+$/ },
+    { type: 'sha512(utf16le($pass).$salt)', regex: /^[0-9a-fA-F]{128}:\d+$/ },
+    { type: 'sha512($salt.utf16le($pass))', regex: /^[0-9a-fA-F]{128}:\d+$/ },
+    { type: 'HMAC-SHA512 (key = $pass)', regex: /^[0-9a-fA-F]{128}:\d+$/ },
+    { type: 'HMAC-SHA512 (key = $salt)', regex: /^[0-9a-fA-F]{128}:\d+$/ },
+    { type: 'sha512(utf16le($pass))', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'sha512crypt $6$, SHA512 (Unix) 2', regex: /^\$6\$.{0,16}\$[0-9a-zA-Z./]{86}$/ },
+    { type: 'Domain Cached Credentials 2 (DCC2), MS Cache 2', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Cisco-PIX MD5', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Cisco-ASA MD5', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'WPA-EAPOL-PBKDF2 1', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'WPA-EAPOL-PMK 14', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5(md5($pass))', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'LM', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Oracle H: Type (Oracle 7+)', regex: /^[0-9a-fA-F]{16}$/ },
+    { type: 'bcrypt $2*$, Blowfish (Unix)', regex: /^\$2[axy]\$[0-9]{2}\$[0-9a-zA-Z./]{53}$/ },
+    { type: 'md5(md5(md5($pass)))', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5($salt.md5($pass))', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Dahua NVR/DVR/HVR (md5($salt1.strtoupper(md5($salt2.$pass)))) *', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5($salt.$pass.$salt)', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5(md5($pass).md5($salt))', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5($salt.md5($salt.$pass))', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5($salt.md5($pass.$salt))', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5(strtoupper(md5($pass)))', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5(sha1($pass))', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'md5(sha1($pass).$salt)', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'sha1(sha1($pass))', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'sha1(sha1($pass).$salt)', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'sha1($salt.sha1($pass))', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'sha1(md5($pass))', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'sha1(md5($pass).$salt)', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'iSCSI CHAP authentication, MD5(CHAP) 7', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'sha1($salt.$pass.$salt)', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'sha1(sha1($salt.$pass.$salt))', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'Half MD5', regex: /^[0-9a-fA-F]{16}$/ },
+    { type: 'Password Safe v3', regex: /^[0-9a-fA-F]{16}$/ },
+    { type: 'IKE-PSK MD5', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'IKE-PSK SHA1', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'NetNTLMv1 / NetNTLMv1+ESS', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'NetNTLMv2', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'Cisco-IOS type 4 (SHA256)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'Samsung Android Password/PIN', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'RIPEMD-160', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'HMAC-RIPEMD160 (key = $pass) *', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'HMAC-RIPEMD160 (key = $salt) *', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'Whirlpool', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Twofish (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES-Twofish (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES-Twofish-Serpent (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent-AES (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent-Twofish-AES (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Twofish-Serpent (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ SHA512 + AES (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ SHA512 + Serpent (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ SHA512 + Twofish (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ SHA512 + AES-Twofish (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ SHA512 + AES-Twofish-Serpent (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ SHA512 + Serpent-AES (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ SHA512 + Serpent-Twofish-AES (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ SHA512 + Twofish-Serpent (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ Whirlpool + AES (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ Whirlpool + Serpent (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ Whirlpool + Twofish (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ Whirlpool + AES-Twofish (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ Whirlpool + AES-Twofish-Serpent (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ Whirlpool + Serpent-AES (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ Whirlpool + Serpent-Twofish-AES (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ Whirlpool + Twofish-Serpent (legacy)', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES + boot (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent + boot (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Twofish + boot (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES-Twofish + boot (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + AES-Twofish-Serpent + boot (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent-AES + boot (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Serpent-Twofish-AES + boot (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'TrueCrypt 5.0+ PBKDF2-HMAC-RIPEMD160 + Twofish-Serpent + boot (legacy)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'AIX {smd5}', regex: /^\{smd5\}[0-9a-zA-Z./]{16}$/ },
+    { type: 'AIX {ssha256}', regex: /^\{ssha256\}[0-9a-zA-Z./]{32}$/ },
+    { type: 'AIX {ssha512}', regex: /^\{ssha512\}[0-9a-zA-Z./]{64}$/ },
+    { type: '1Password, agilekeychain', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'AIX {ssha1}', regex: /^\{ssha1\}[0-9a-zA-Z./]{28}$/ },
+    { type: 'LastPass + LastPass sniffed4', regex: /^\$av=3\$[0-9a-fA-F]{8}\$[0-9a-fA-F]{32}$/ },
+    { type: 'GOST R 34.11-94', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'FortiGate (FortiOS)', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'GRUB 2', regex: /^\$grub\$\d\$\S+$/ },
+    { type: 'IPMI2 RAKP HMAC-SHA1', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'sha256crypt $5$, SHA256 (Unix) 2', regex: /^\$5\$.{0,16}\$[0-9a-zA-Z./]{43}$/ },
+    { type: 'Kerberos 5, etype 23, AS-REQ Pre-Auth', regex: /^\$23\$[0-9a-fA-F]{32}$/ },
+    { type: 'SAP CODVN B (BCODE)', regex: /^[0-9]{40}$/ },
+    { type: 'SAP CODVN B (BCODE) from RFC_READ_TABLE', regex: /^[0-9]{40}$/ },
+    { type: 'SAP CODVN F/G (PASSCODE)', regex: /^[0-9]{40}$/ },
+    { type: 'SAP CODVN F/G (PASSCODE) from RFC_READ_TABLE', regex: /^[0-9]{40}$/ },
+    { type: 'Drupal7', regex: /^\$S\$[0-9a-zA-Z./]{52}$/ },
+    { type: 'Sybase ASE', regex: /^0x0100[0-9a-fA-F]{40}$/ },
+    { type: 'Citrix NetScaler (SHA1)', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: '1Password, cloudkeychain', regex: /^\$cloudkeychain\$[0-9a-fA-F]{16}\$[0-9a-fA-F]{32}$/ },
+    { type: 'DNSSEC (NSEC3)', regex: /^\$nsec3\$\d\$\S+$/ },
+    { type: 'WBB3 (Woltlab Burning Board)', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'RACF', regex: /^RACF\-[0-9a-fA-F]{8}-[0-9a-fA-F]{8}$/ },
+    { type: 'Lotus Notes/Domino 5', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Lotus Notes/Domino 6', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Android FDE <= 4.3', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'scrypt', regex: /^\$7\$[0-9a-zA-Z./]{16}\$[0-9a-zA-Z./]+$/ },
+    { type: 'Password Safe v2', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Lotus Notes/Domino 8', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Cisco-IOS $8$ (PBKDF2-SHA256)', regex: /^\$8\$[0-9a-zA-Z./]{16}\$[0-9a-zA-Z./]+$/ },
+    { type: 'Cisco-IOS $9$ (scrypt)', regex: /^\$9\$[0-9a-zA-Z./]{16}\$[0-9a-zA-Z./]+$/ },
+    { type: 'MS Office 2007', regex: /^\$office\$\d\$\S+$/ },
+    { type: 'MS Office 2010', regex: /^\$office\$\d\$\S+$/ },
+    { type: 'MS Office 2013', regex: /^\$office\$\d\$\S+$/ },
+    { type: 'MS Office ⇐ 2003 MD5 + RC4, oldoffice$0, oldoffice$1', regex: /^\$oldoffice\$\d\$\S+$/ },
+    { type: 'MS Office ⇐ 2003 $0/$1, MD5 + RC4, collider #1 23', regex: /^\$oldoffice\$\d\$\S+$/ },
+    { type: 'MS Office ⇐ 2003 $0/$1, MD5 + RC4, collider #2', regex: /^\$oldoffice\$\d\$\S+$/ },
+    { type: 'MS Office ⇐ 2003 SHA1 + RC4, oldoffice$3, oldoffice$4', regex: /^\$oldoffice\$\d\$\S+$/ },
+    { type: 'MS Office ⇐ 2003 $3, SHA1 + RC4, collider #1 24', regex: /^\$oldoffice\$\d\$\S+$/ },
+    { type: 'MS Office ⇐ 2003 $3, SHA1 + RC4, collider #2', regex: /^\$oldoffice\$\d\$\S+$/ },
+    { type: 'Radmin2', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'Django (PBKDF2-SHA256)', regex: /^\$pbkdf2-sha256\$\d\$\S+$/ },
+    { type: 'SipHash', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'CRAM-MD5', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'SAP CODVN H (PWDSALTEDHASH) iSSHA-1', regex: /^iSSHA-1\-[0-9a-zA-Z./]{28}$/ },
+    { type: 'PDF 1.1 - 1.3 (Acrobat 2 - 4)', regex: /^pdf1\.2\-[0-9a-fA-F]{32}$/ },
+    { type: 'PDF 1.1 - 1.3 (Acrobat 2 - 4), collider #1 25', regex: /^pdf1\.2\-[0-9a-fA-F]{32}$/ },
+    { type: 'PDF 1.1 - 1.3 (Acrobat 2 - 4), collider #2', regex: /^pdf1\.2\-[0-9a-fA-F]{32}$/ },
+    { type: 'PDF 1.4 - 1.6 (Acrobat 5 - 8)', regex: /^pdf1\.5\-[0-9a-fA-F]{32}$/ },
+    { type: 'PDF 1.7 Level 3 (Acrobat 9)', regex: /^pdf1\.7\-[0-9a-fA-F]{32}$/ },
+    { type: 'PDF 1.7 Level 8 (Acrobat 10 - 11)', regex: /^pdf1\.7\-[0-9a-fA-F]{32}$/ },
+    { type: 'SHA2-384', regex: /^[0-9a-fA-F]{96}$/ },
+    { type: 'sha384($pass.$salt)', regex: /^[0-9a-fA-F]{96}$/ },
+    { type: 'sha384($salt.$pass)', regex: /^[0-9a-fA-F]{96}$/ },
+    { type: 'sha384(utf16le($pass).$salt)', regex: /^[0-9a-fA-F]{96}$/ },
+    { type: 'sha384($salt.utf16le($pass))', regex: /^[0-9a-fA-F]{96}$/ },
+    { type: 'sha384(utf16le($pass))', regex: /^[0-9a-fA-F]{96}$/ },
+    { type: 'PBKDF2-HMAC-SHA256', regex: /^\$pbkdf2-sha256\$\d\$\S+$/ },
+    { type: 'RedHat 389-DS LDAP (PBKDF2-HMAC-SHA256)', regex: /^\{PBKDF2-HMAC-SHA256\}[0-9a-zA-Z./]{43}$/ },
+    { type: 'PrestaShop', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'PostgreSQL CRAM (MD5)', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'MySQL CRAM (SHA1)', regex: /^[0-9a-fA-F]{40}$/ },
+    { type: 'Bitcoin/Litecoin wallet.dat', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'SIP digest authentication (MD5)', regex: /^[0-9a-fA-F]{32}$/ },
+    { type: 'CRC32 5', regex: /^[0-9a-fA-F]{8}$/ },
+    { type: '7-Zip', regex: /^(\$7z\$|!)\d!\S+$/ },
+    { type: 'GOST R 34.11-2012 (Streebog) 256-bit, big-endian', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'HMAC-Streebog-256 (key = $pass), big-endian', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'HMAC-Streebog-256 (key = $salt), big-endian', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'GOST R 34.11-2012 (Streebog) 512-bit, big-endian', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'HMAC-Streebog-512 (key = $pass), big-endian', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'HMAC-Streebog-512 (key = $salt), big-endian', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'PBKDF2-HMAC-MD5', regex: /^\$md5\$\d+\$[0-9a-zA-Z./]+\$[0-9a-zA-Z./]+$/ },
+    { type: 'PBKDF2-HMAC-SHA1', regex: /^\$sha1\$\d+\$[0-9a-zA-Z./]+\$[0-9a-zA-Z./]+$/ },
+    { type: 'PBKDF2-HMAC-SHA512', regex: /^\$sha512\$\d+\$[0-9a-zA-Z./]+\$[0-9a-zA-Z./]+$/ },
+    { type: 'eCryptfs', regex: /^(\$ecryptfs\$|!)\S+$/ },
+    { type: 'Oracle T: Type (Oracle 12+)', regex: /^(\$T\$|!)[0-9a-fA-F]{12}![0-9a-fA-F]{64}$/ },
+    { type: 'BSDi Crypt, Extended DES', regex: /^\$1\$.{0,8}\$[0-9a-zA-Z./]{22}$/ },
+    { type: 'RAR3-hp', regex: /^\$RAR3\$\d\$\S+$/ },
+    { type: 'ColdFusion 10+', regex: /^\$coldfusion\$\d\$\S+$/ },
+    { type: 'Blockchain, My Wallet', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'MS-AzureSync PBKDF2-HMAC-SHA256', regex: /^\{PBKDF2-HMAC-SHA256\}[0-9a-zA-Z./]{43}$/ },
+    { type: 'Android FDE (Samsung DEK)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'RAR5', regex: /^\$RAR5\$\d\$\S+$/ },
+    { type: 'Kerberos 5, etype 23, TGS-REP', regex: /^krb5tgs\$\S+$/ },
+    { type: 'AxCrypt 1', regex: /^\$axcrypt\$\d\$\S+$/ },
+    { type: 'AxCrypt 1 in-memory SHA1 13', regex: /^\$axcrypt-sha1\$\d\$\S+$/ },
+    { type: 'KeePass 1 AES / without keyfile', regex: /^\$keepass\$\d\$\S+$/ },
+    { type: 'KeePass 2 AES / without keyfile', regex: /^\$keepass2\$\d\$\S+$/ },
+    { type: 'KeePass 1 Twofish / with keyfile', regex: /^\$keepass-twofish\$\d\$\S+$/ },
+    { type: 'Keepass 2 AES / with keyfile', regex: /^\$keepass2-keyfile\$\d\$\S+$/ },
+    { type: 'PeopleSoft PS_TOKEN', regex: /^\{ps-token\}[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/ },
+    { type: 'WinZip', regex: /^\$zip2\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + AES-Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + Serpent (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + Serpent-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + Serpent-Twofish-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + Twofish-Serpent (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + AES-Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + Serpent (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + Serpent-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + Serpent-Twofish-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + Twofish-Serpent (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA512 + AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA512 + AES-Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA512 + Serpent (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA512 + Serpent-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA512 + Serpent-Twofish-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA512 + Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA512 + Twofish-Serpent (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-Whirlpool + AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-Whirlpool + AES-Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-Whirlpool + Serpent (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-Whirlpool + Serpent-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-Whirlpool + Serpent-Twofish-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-Whirlpool + Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-Whirlpool + Twofish-Serpent (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + boot-mode + AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + boot-mode + AES-Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-RIPEMD160 + boot-mode + AES-Twofish-Serpent (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + boot-mode + Twofish (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + boot-mode + Serpent-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + boot-mode + Serpent-Twofish-AES (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt PBKDF2-HMAC-SHA256 + boot-mode + PIM + AES 16 (legacy)', regex: /^\$veracrypt\$\d\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 512 bit (legacy)', regex: /^\$veracrypt-streebog-xts-512\$\d\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 1024 bit (legacy)', regex: /^\$veracrypt-streebog-xts-1024\$\d\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 1536 bit (legacy)', regex: /^\$veracrypt-streebog-xts-1536\$\d\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 512 bit + boot-mode (legacy)', regex: /^\$veracrypt-streebog-xts-512-boot\$\d\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 1024 bit + boot-mode (legacy)', regex: /^\$veracrypt-streebog-xts-1024-boot\$\d\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 1536 bit + boot-mode (legacy)', regex: /^\$veracrypt-streebog-xts-1536-boot\$\d\$\S+$/ },
+    { type: 'Windows Phone 8+ PIN/password', regex: /^[0-9]{4,6}$/ },
+    { type: 'OpenCart', regex: /^oc_\S+$/ },
+    { type: 'DES (PT = $salt, key = $pass) 8', regex: /^\$des-8\$\S+$/ },
+    { type: '3DES (PT = $salt, key = $pass) 9', regex: /^\$3des-9\$\S+$/ },
+    { type: 'sha1(CX)', regex: /^sha1\([0-9a-fA-F]{40}\)$/ },
+    { type: 'Linux Kernel Crypto API (2.4)', regex: /^\$lkcrypt\$\S+$/ },
+    { type: 'LUKS v1 (legacy) 10', regex: /^\$luks\$\d\$\S+$/ },
+    { type: 'iTunes backup < 10.0 11', regex: /^itunes-10\.\S+$/ },
+    { type: 'iTunes backup >= 10.0 11', regex: /^itunes-11\.\S+$/ },
+    { type: 'Skip32 (PT = $salt, key = $pass) 12', regex: /^\$skip32-12\$\S+$/ },
+    { type: 'FileZilla Server >= 0.9.55', regex: /^\$filezilla\$\S+$/ },
+    { type: 'Juniper/NetBSD sha1crypt', regex: /^\$junos-sha1\$\S+$/ },
+    { type: 'Blockchain, My Wallet, V2', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'DPAPI masterkey file v1 + local context', regex: /^dpapi-v1-local\$\S+$/ },
+    { type: 'DPAPI masterkey file v1 (context 3) *', regex: /^dpapi-v1-context3\$\S+$/ },
+    { type: 'ChaCha20 20', regex: /^\$chacha20\$\S+$/ },
+    { type: 'JKS Java Key Store Private Keys (SHA1)', regex: /^\$jks-sha1\$\S+$/ },
+    { type: 'Ethereum Wallet, PBKDF2-HMAC-SHA256', regex: /^\$ethereum-pbkdf2-sha256\$\S+$/ },
+    { type: 'Ethereum Wallet, SCRYPT', regex: /^\$ethereum-scrypt\$\S+$/ },
+    { type: 'DPAPI masterkey file v2 + Active Directory domain context', regex: /^dpapi-v2-ad\$\S+$/ },
+    { type: 'DPAPI masterkey file v2 (context 3)', regex: /^dpapi-v2-context3\$\S+$/ },
+    { type: 'Tripcode', regex: /^#tripcode\$\S+$/ },
+    { type: 'TACACS+', regex: /^\$tacacs\$\S+$/ },
+    { type: 'Apple Secure Notes', regex: /^\$apple-secure-notes\$\S+$/ },
+    { type: 'Ethereum Pre-Sale Wallet, PBKDF2-HMAC-SHA256', regex: /^\$ethereum-presale-pbkdf2-sha256\$\S+$/ },
+    { type: 'CRAM-MD5 Dovecot', regex: /^cram-md5-dovecot\$\S+$/ },
+    { type: 'JWT (JSON Web Token)', regex: /^jwt\.\S+\.\S+$/ },
+    { type: 'Electrum Wallet (Salt-Type 1-3)', regex: /^\$electrum-salt\$\d\$\S+$/ },
+    { type: 'FileVault 2', regex: /^\$fv2\$\S+$/ },
+    { type: 'WPA-PMKID-PBKDF2 1', regex: /^\$wpa-pmkid-pbkdf2-1\$\S+$/ },
+    { type: 'WPA-PMKID-PMK 15', regex: /^\$wpa-pmkid-pmk-15\$\S+$/ },
+    { type: 'Ansible Vault', regex: /^\$ansible-vault\$\d\$\S+$/ },
+    { type: 'GPG (AES-128/AES-256 (SHA-1($pass))) *', regex: /^\$gpg-sha1\$\S+$/ },
+    { type: 'GPG (AES-128/AES-256 (SHA-512($pass))) *', regex: /^\$gpg-sha512\$\S+$/ },
+    { type: 'GPG (AES-128/AES-256 (SHA-256($pass))) *', regex: /^\$gpg-sha256\$\S+$/ },
+    { type: 'PKZIP (Compressed)', regex: /^\$pkzip-compressed\$\S+$/ },
+    { type: 'PKZIP (Uncompressed)', regex: /^\$pkzip-uncompressed\$\S+$/ },
+    { type: 'PKZIP (Compressed Multi-File)', regex: /^\$pkzip-compressed-multi\$\S+$/ },
+    { type: 'PKZIP (Mixed Multi-File)', regex: /^\$pkzip-mixed-multi\$\S+$/ },
+    { type: 'PKZIP (Mixed Multi-File Checksum-Only)', regex: /^\$pkzip-mixed-multi-checksum\$\S+$/ },
+    { type: 'SHA3-224', regex: /^[0-9a-fA-F]{56}$/ },
+    { type: 'SHA3-256', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'SHA3-384', regex: /^[0-9a-fA-F]{96}$/ },
+    { type: 'SHA3-512', regex: /^[0-9a-fA-F]{128}$/ },	
+    { type: 'Keccak-224', regex: /^[0-9a-fA-F]{56}$/ },
+    { type: 'Keccak-256', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'Keccak-384', regex: /^[0-9a-fA-F]{96}$/ },
+    { type: 'Keccak-512', regex: /^[0-9a-fA-F]{128}$/ },
+    { type: 'TOTP (HMAC-SHA1)', regex: /^\d+:\d+$/ },
+    { type: 'Kerberos 5, etype 23, AS-REP', regex: /^krb5-et23-as-rep\$\S+$/ },
+    { type: 'Apple File System (APFS)', regex: /^\$apfs\$\S+$/ },
+    { type: 'Open Document Format (ODF) 1.2 (SHA-256, AES)', regex: /^odf-1.2-sha256\$\S+$/ },
+    { type: 'sha1(md5(md5($pass)))', regex: /^sha1-md5-md5\$\S+$/ },
+    { type: 'Open Document Format (ODF) 1.1 (SHA-1, Blowfish)', regex: /^odf-1.1-sha1\$\S+$/ },
+    { type: 'Java Object hashCode()', regex: /^java-hashcode\$\S+$/ },
+    { type: 'Blockchain, My Wallet, Second Password (SHA256)', regex: /^[0-9a-fA-F]{64}$/ },
+    { type: 'Android Backup', regex: /^android-backup\$\S+$/ },
+    { type: 'QNX /etc/shadow (MD5)', regex: /^qnx-md5\$\S+$/ },
+    { type: 'QNX /etc/shadow (SHA256)', regex: /^qnx-sha256\$\S+$/ },
+    { type: 'QNX /etc/shadow (SHA512)', regex: /^qnx-sha512\$\S+$/ },
+    { type: 'sha1($salt1.$pass.$salt2)', regex: /^sha1-salt1-pass-salt2\$\S+$/ },
+    { type: 'Ruby on Rails Restful-Authentication', regex: /^rails-restful-auth\$\S+$/ },
+    { type: 'Kerberos 5, etype 17, TGS-REP (AES128-CTS-HMAC-SHA1-96)', regex: /^krb5-et17-tgs-rep-aes128\$\S+$/ },
+    { type: 'Kerberos 5, etype 18, TGS-REP (AES256-CTS-HMAC-SHA1-96)', regex: /^krb5-et18-tgs-rep-aes256\$\S+$/ },
+    { type: 'Kerberos 5, etype 17, Pre-Auth', regex: /^krb5-et17-pre-auth\$\S+$/ },
+    { type: 'Kerberos 5, etype 18, Pre-Auth', regex: /^krb5-et18-pre-auth\$\S+$/ },
+    { type: 'DiskCryptor SHA512 + XTS 512 bit (AES)', regex: /^diskcryptor-sha512-xts-512-aes\$\S+$/ },
+    { type: 'DiskCryptor SHA512 + XTS 512 bit (Twofish)', regex: /^diskcryptor-sha512-xts-512-twofish\$\S+$/ },
+    { type: 'DiskCryptor SHA512 + XTS 512 bit (Serpent)', regex: /^diskcryptor-sha512-xts-512-serpent\$\S+$/ },
+    { type: 'DiskCryptor SHA512 + XTS 1024 bit (AES-Twofish)', regex: /^diskcryptor-sha512-xts-1024-aes-twofish\$\S+$/ },
+    { type: 'DiskCryptor SHA512 + XTS 1024 bit (Twofish-Serpent)', regex: /^diskcryptor-sha512-xts-1024-twofish-serpent\$\S+$/ },
+    { type: 'DiskCryptor SHA512 + XTS 1024 bit (Serpent-AES)', regex: /^diskcryptor-sha512-xts-1024-serpent-aes\$\S+$/ },
+    { type: 'DiskCryptor SHA512 + XTS 1536 bit (AES-Twofish-Serpent)', regex: /^diskcryptor-sha512-xts-1536-aes-twofish-serpent\$\S+$/ },
+    { type: 'Python passlib pbkdf2-sha512', regex: /^\$pbkdf2-sha512\$\S+$/ },
+    { type: 'Python passlib pbkdf2-sha256', regex: /^\$pbkdf2-sha256\$\S+$/ },
+    { type: 'Python passlib pbkdf2-sha1', regex: /^\$pbkdf2-sha1\$\S+$/ },
+    { type: 'PKZIP Master Key', regex: /^pkzip-master-key\$\S+$/ },
+    { type: 'PKZIP Master Key (6 byte optimization) 17', regex: /^pkzip-master-key-6byte-17\$\S+$/ },
+    { type: 'Oracle Transportation Management (SHA256)', regex: /^oracle-tm-sha256\$\S+$/ },
+    { type: 'sha256(sha256($pass).$salt)', regex: /^sha256-sha256-salt\$\S+$/ },
+    { type: 'sha256($salt.sha256($pass))', regex: /^sha256-salt-sha256-pass\$\S+$/ },
+    { type: 'sha256(md5($pass))', regex: /^sha256-md5-pass\$\S+$/ },
+    { type: 'md5(sha1($pass).md5($pass).sha1($pass))', regex: /^md5-sha1-md5-pass\$\S+$/ },
+    { type: 'BitShares v0.x - sha512(sha512_bin(pass))', regex: /^bitshares-sha512-bin\$\S+$/ },
+    { type: 'sha1(md5($pass.$salt))', regex: /^sha1-md5-pass-salt\$\S+$/ },
+    { type: 'md5(sha1($salt).md5($pass))', regex: /^md5-sha1-salt-md5-pass\$\S+$/ },
+    { type: 'md5($salt.sha1($salt.$pass))', regex: /^md5-salt-sha1-salt-pass\$\S+$/ },
+    { type: 'sha256(sha256_bin($pass))', regex: /^sha256-sha256-bin-pass\$\S+$/ },
+    { type: 'sha256($salt.sha256_bin($pass))', regex: /^sha256-salt-sha256-bin-pass\$\S+$/ },
+    { type: 'SolarWinds Orion', regex: /^solarwinds-orion\$\S+$/ },
+    { type: 'SolarWinds Orion v2', regex: /^solarwinds-orion-v2\$\S+$/ },
+    { type: 'Web2py pbkdf2-sha512', regex: /^web2py-pbkdf2-sha512\$\S+$/ },
+    { type: 'Electrum Wallet (Salt-Type 4)', regex: /^electrum-wallet-salt-type-4\$\S+$/ },
+    { type: 'Electrum Wallet (Salt-Type 5)', regex: /^electrum-wallet-salt-type-5\$\S+$/ },
+    { type: 'WPA-PBKDF2-PMKID+EAPOL 1', regex: /^wpapbkdf2pmkideapol1\$\S+$/ },
+    { type: 'WPA-PMK-PMKID+EAPOL 18', regex: /^wpapmkpmkideapol18\$\S+$/ },
+    { type: 'BitLocker', regex: /^bitlocker\$\S+$/ },
+    { type: 'Citrix NetScaler (SHA512)', regex: /^citrix-netscaler-sha512\$\S+$/ },
+    { type: 'sha256($salt.$pass.$salt)', regex: /^sha256-salt-pass-salt\$\S+$/ },
+    { type: 'AES Crypt (SHA256)', regex: /^aescrypt-sha256\$\S+$/ },
+    { type: 'MultiBit Classic .key (MD5)', regex: /^multibit-classic-md5\$\S+$/ },
+    { type: 'Telegram Desktop < v2.1.14 (PBKDF2-HMAC-SHA1)', regex: /^telegram-desktop-pbkdf2-hmac-sha1\$\S+$/ },
+    { type: 'MultiBit HD (scrypt)', regex: /^multibit-hd-scrypt\$\S+$/ },
+    { type: 'RSA/DSA/EC/OpenSSH Private Keys ($0$)', regex: /^ssh-private-keys-0\$\S+$/ },
+    { type: 'RSA/DSA/EC/OpenSSH Private Keys ($6$)', regex: /^ssh-private-keys-6\$\S+$/ },
+    { type: 'RSA/DSA/EC/OpenSSH Private Keys ($1, $3$)', regex: /^ssh-private-keys-1-3\$\S+$/ },
+    { type: 'RSA/DSA/EC/OpenSSH Private Keys ($4$)', regex: /^ssh-private-keys-4\$\S+$/ },
+    { type: 'RSA/DSA/EC/OpenSSH Private Keys ($5$)', regex: /^ssh-private-keys-5\$\S+$/ },
+    { type: 'SecureZIP AES-128', regex: /^securezip-aes-128\$\S+$/ },
+    { type: 'SecureZIP AES-192', regex: /^securezip-aes-192\$\S+$/ },
+    { type: 'SecureZIP AES-256', regex: /^securezip-aes-256\$\S+$/ },
+    { type: 'Apple Keychain', regex: /^apple-keychain\$\S+$/ },
+    { type: 'XMPP SCRAM PBKDF2-SHA1', regex: /^xmpp-scram-pbkdf2-sha1\$\S+$/ },
+    { type: 'Apple iWork', regex: /^apple-iwork\$\S+$/ },
+    { type: 'Bitwarden', regex: /^bitwarden\$\S+$/ },
+    { type: 'AxCrypt 2 AES-128', regex: /^axcrypt2-aes-128\$\S+$/ },
+    { type: 'AxCrypt 2 AES-256', regex: /^axcrypt2-aes-256\$\S+$/ },
+    { type: 'RAR3-p (Uncompressed)', regex: /^rar3-p-uncompressed\$\S+$/ },
+    { type: 'RAR3-p (Compressed)', regex: /^rar3-p-compressed\$\S+$/ },
+    { type: 'BestCrypt v3 Volume Encryption', regex: /^bestcrypt-v3\$\S+$/ },
+    { type: 'MongoDB ServerKey SCRAM-SHA-1', regex: /^mongodb-serverkey-scram-sha1\$\S+$/ },
+    { type: 'MongoDB ServerKey SCRAM-SHA-256', regex: /^mongodb-serverkey-scram-sha256\$\S+$/ },
+    { type: 'sha1($salt.sha1($pass.$salt))', regex: /^sha1-salt-sha1-pass-salt\$\S+$/ },
+    { type: 'PKCS#8 Private Keys (PBKDF2-HMAC-SHA1 + 3DES/AES)', regex: /^pkcs8-private-keys-pbkdf2-sha1-3des-aes\$\S+$/ },
+    { type: 'PKCS#8 Private Keys (PBKDF2-HMAC-SHA256 + 3DES/AES)', regex: /^pkcs8-private-keys-pbkdf2-sha256-3des-aes\$\S+$/ },
+    { type: 'Telegram Desktop >= v2.1.14 (PBKDF2-HMAC-SHA512)', regex: /^telegram-desktop-pbkdf2-hmac-sha512\$\S+$/ },
+    { type: 'SQLCipher', regex: /^sqlcipher\$\S+$/ },
+    { type: 'Stuffit5', regex: /^stuffit5\$\S+$/ },
+    { type: 'Umbraco HMAC-SHA1', regex: /^umbraco-hmac-sha1\$\S+$/ },
+    { type: 'Dahua Authentication MD5', regex: /^dahua-authentication-md5\$\S+$/ },
+    { type: 'SNMPv3 HMAC-MD5-96/HMAC-SHA1-96 8', regex: /^snmpv3-hmac-md5-96-sha1-96-8\$\S+$/ },
+    { type: 'SNMPv3 HMAC-MD5-96 8', regex: /^snmpv3-hmac-md5-96-8\$\S+$/ },
+    { type: 'SNMPv3 HMAC-SHA1-96 8', regex: /^snmpv3-hmac-sha1-96-8\$\S+$/ },
+    { type: 'MS Office 2016 - SheetProtection', regex: /^ms-office-2016-sheetprotection\$\S+$/ },
+    { type: 'PDF 1.4 - 1.6 (Acrobat 5 - 8) - user and owner pass', regex: /^pdf-1.4-1.6-user-owner-pass\$\S+$/ },
+    { type: 'Stargazer Stellar Wallet XLM', regex: /^stargazer-stellar-wallet-xlm\$\S+$/ },
+    { type: 'bcrypt(md5($pass)) / bcryptmd5', regex: /^bcrypt-md5-pass\$\S+$/ },
+    { type: 'MurmurHash', regex: /^murmurhash\$\S+$/ },
+    { type: 'bcrypt(sha1($pass)) / bcryptsha1', regex: /^bcrypt-sha1-pass\$\S+$/ },
+    { type: 'KNX IP Secure - Device Authentication Code', regex: /^knx-ip-secure-device-authentication-code\$\S+$/ },
+    { type: 'Mozilla key3.db', regex: /^mozilla-key3-db\$\S+$/ },
+    { type: 'Mozilla key4.db', regex: /^mozilla-key4-db\$\S+$/ },
+    { type: 'OpenEdge Progress Encode', regex: /^openedge-progress-encode\$\S+$/ },	
+    { type: 'FortiGate256 (FortiOS256)', regex: /^fortigate256\$\S+$/ },
+    { type: 'AES-128-ECB NOKDF (PT = $salt, key = $pass)', regex: /^aes128-ecb-nokdf\$\S+$/ },
+    { type: 'AES-192-ECB NOKDF (PT = $salt, key = $pass)', regex: /^aes192-ecb-nokdf\$\S+$/ },
+    { type: 'AES-256-ECB NOKDF (PT = $salt, key = $pass)', regex: /^aes256-ecb-nokdf\$\S+$/ },
+    { type: 'iPhone passcode (UID key + System Keybag)', regex: /^iphone-passcode\$\S+$/ },
+    { type: 'MetaMask Wallet 8', regex: /^metamask-wallet-8\$\S+$/ },
+    { type: 'MetaMask Wallet (short hash, plaintext check) 8 *', regex: /^metamask-wallet-short-hash-plaintext-check-8\$\S+$/ },
+    { type: 'SNMPv3 HMAC-SHA224-128 8', regex: /^snmpv3-hmac-sha224-128-8\$\S+$/ },
+    { type: 'SNMPv3 HMAC-SHA256-192 8 8', regex: /^snmpv3-hmac-sha256-192-8-8\$\S+$/ },
+    { type: 'SNMPv3 HMAC-SHA384-256 8', regex: /^snmpv3-hmac-sha384-256-8\$\S+$/ },
+    { type: 'NetNTLMv1 / NetNTLMv1+ESS (NT) 22', regex: /^netntlmv1-netntlmv1ess-nt-22\$\S+$/ },
+    { type: 'NetNTLMv2 (NT) 22', regex: /^netntlmv2-nt-22\$\S+$/ },
+    { type: 'Ruby on Rails Restful Auth (one round, no sitekey)', regex: /^ruby-on-rails-restful-auth\$\S+$/ },
+    { type: 'SNMPv3 HMAC-SHA512-384 8', regex: /^snmpv3-hmac-sha512-384-8\$\S+$/ },
+    { type: 'VMware VMX (PBKDF2-HMAC-SHA1 + AES-256-CBC)', regex: /^vmware-vmx-pbkdf2-hmac-sha1-aes-256-cbc\$\S+$/ },
+    { type: 'VirtualBox (PBKDF2-HMAC-SHA256 & AES-128-XTS)', regex: /^virtualbox-pbkdf2-hmac-sha256-aes-128-xts\$\S+$/ },
+    { type: 'VirtualBox (PBKDF2-HMAC-SHA256 & AES-256-XTS)', regex: /^virtualbox-pbkdf2-hmac-sha256-aes-256-xts\$\S+$/ },
+    { type: 'MultiBit Classic .wallet (scrypt)', regex: /^multibit-classic-wallet-scrypt\$\S+$/ },
+    { type: 'MurmurHash3', regex: /^murmurhash3\$\S+$/ },
+    { type: 'CRC32C', regex: /^crc32c\$\S+$/ },
+    { type: 'CRC64Jones', regex: /^crc64jones\$\S+$/ },
+    { type: 'Windows Hello PIN/Password', regex: /^windows-hello-pin-password\$\S+$/ },
+    { type: 'Exodus Desktop Wallet (scrypt)', regex: /^exodus-desktop-wallet-scrypt\$\S+$/ },
+    { type: 'Teamspeak 3 (channel hash)', regex: /^teamspeak3-channel-hash\$\S+$/ },
+    { type: 'bcrypt(sha512($pass)) / bcryptsha512', regex: /^bcrypt-sha512-pass\$\S+$/ },
+    { type: 'Bitcoin WIF private key (P2PKH), compressed 26', regex: /^bitcoin-wif-p2pkh-compressed-26\$\S+$/ },
+    { type: 'Bitcoin WIF private key (P2PKH), uncompressed 27', regex: /^bitcoin-wif-p2pkh-uncompressed-27\$\S+$/ },
+    { type: 'Bitcoin WIF private key (P2WPKH, Bech32), compressed 28', regex: /^bitcoin-wif-p2wpkh-compressed-28\$\S+$/ },
+    { type: 'Bitcoin WIF private key (P2WPKH, Bech32), uncompressed 29', regex: /^bitcoin-wif-p2wpkh-uncompressed-29\$\S+$/ },
+    { type: 'Bitcoin WIF private key (P2SH(P2WPKH)), compressed 30', regex: /^bitcoin-wif-p2sh-p2wpkh-compressed-30\$\S+$/ },
+    { type: 'Bitcoin WIF private key (P2SH(P2WPKH)), uncompressed 31', regex: /^bitcoin-wif-p2sh-p2wpkh-uncompressed-31\$\S+$/ },
+    { type: 'PostgreSQL SCRAM-SHA-256', regex: /^postgresql-scram-sha-256\$\S+$/ },
+    { type: 'Amazon AWS4-HMAC-SHA256', regex: /^amazon-aws4-hmac-sha256\$\S+$/ },
+    { type: 'Kerberos 5, etype 17, DB', regex: /^kerberos5-etype-17-db\$\S+$/ },
+    { type: 'Kerberos 5, etype 18, DB', regex: /^kerberos5-etype-18-db\$\S+$/ },
+    { type: 'Flask Session Cookie ($salt.$salt.$pass)', regex: /^flask-session-cookie-salt-salt-pass\$\S+$/ },
+    { type: 'Radmin3', regex: /^radmin3\$\S+$/ },
+    { type: 'TrueCrypt RIPEMD160 + XTS 512 bit', regex: /^truecrypt-ripemd160-xts-512\$\S+$/ },
+    { type: 'TrueCrypt RIPEMD160 + XTS 1024 bit', regex: /^truecrypt-ripemd160-xts-1024\$\S+$/ },
+    { type: 'TrueCrypt RIPEMD160 + XTS 1536 bit', regex: /^truecrypt-ripemd160-xts-1536\$\S+$/ },	
+    { type: 'VeraCrypt RIPEMD160 + XTS 512 bit', regex: /^veracrypt-ripemd160-xts-512\$\S+$/ },
+    { type: 'VeraCrypt RIPEMD160 + XTS 1024 bit', regex: /^veracrypt-ripemd160-xts-1024\$\S+$/ },
+    { type: 'VeraCrypt RIPEMD160 + XTS 1536 bit', regex: /^veracrypt-ripemd160-xts-1536\$\S+$/ },
+    { type: 'VeraCrypt SHA512 + XTS 512 bit', regex: /^veracrypt-sha512-xts-512\$\S+$/ },
+    { type: 'VeraCrypt SHA512 + XTS 1024 bit', regex: /^veracrypt-sha512-xts-1024\$\S+$/ },
+    { type: 'VeraCrypt SHA512 + XTS 1536 bit', regex: /^veracrypt-sha512-xts-1536\$\S+$/ },
+    { type: 'VeraCrypt Whirlpool + XTS 512 bit', regex: /^veracrypt-whirlpool-xts-512\$\S+$/ },
+    { type: 'VeraCrypt Whirlpool + XTS 1024 bit', regex: /^veracrypt-whirlpool-xts-1024\$\S+$/ },
+    { type: 'VeraCrypt Whirlpool + XTS 1536 bit', regex: /^veracrypt-whirlpool-xts-1536\$\S+$/ },
+    { type: 'VeraCrypt RIPEMD160 + XTS 512 bit + boot-mode', regex: /^veracrypt-ripemd160-xts-512-boot-mode\$\S+$/ },
+    { type: 'VeraCrypt RIPEMD160 + XTS 1024 bit + boot-mode', regex: /^veracrypt-ripemd160-xts-1024-boot-mode\$\S+$/ },
+    { type: 'VeraCrypt RIPEMD160 + XTS 1536 bit + boot-mode', regex: /^veracrypt-ripemd160-xts-1536-boot-mode\$\S+$/ },
+    { type: 'VeraCrypt SHA256 + XTS 512 bit', regex: /^veracrypt-sha256-xts-512\$\S+$/ },
+    { type: 'VeraCrypt SHA256 + XTS 1024 bit', regex: /^veracrypt-sha256-xts-1024\$\S+$/ },
+    { type: 'VeraCrypt SHA256 + XTS 1536 bit', regex: /^veracrypt-sha256-xts-1536\$\S+$/ },
+    { type: 'VeraCrypt SHA256 + XTS 512 bit + boot-mode', regex: /^veracrypt-sha256-xts-512-boot-mode\$\S+$/ },
+    { type: 'VeraCrypt SHA256 + XTS 1024 bit + boot-mode', regex: /^veracrypt-sha256-xts-1024-boot-mode\$\S+$/ },
+    { type: 'VeraCrypt SHA256 + XTS 1536 bit + boot-mode', regex: /^veracrypt-sha256-xts-1536-boot-mode\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 512 bit', regex: /^veracrypt-streebog-512-xts-512\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 1024 bit', regex: /^veracrypt-streebog-512-xts-1024\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 1536 bit', regex: /^veracrypt-streebog-512-xts-1536\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 512 bit + boot-mode', regex: /^veracrypt-streebog-512-xts-512-boot-mode\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 1024 bit + boot-mode', regex: /^veracrypt-streebog-512-xts-1024-boot-mode\$\S+$/ },
+    { type: 'VeraCrypt Streebog-512 + XTS 1536 bit + boot-mode', regex: /^veracrypt-streebog-512-xts-1536-boot-mode\$\S+$/ },
+    { type: 'LUKS v1 SHA-1 + AES', regex: /^luks-v1-sha1-aes\$\S+$/ },
+    { type: 'LUKS v1 SHA-1 + Serpent', regex: /^luks-v1-sha1-serpent\$\S+$/ },
+    { type: 'LUKS v1 SHA-1 + Twofish', regex: /^luks-v1-sha1-twofish\$\S+$/ },
+    { type: 'LUKS v1 SHA-256 + AES', regex: /^luks-v1-sha256-aes\$\S+$/ },
+    { type: 'LUKS v1 SHA-256 + Serpent', regex: /^luks-v1-sha256-serpent\$\S+$/ },
+    { type: 'LUKS v1 SHA-256 + Twofish', regex: /^luks-v1-sha256-twofish\$\S+$/ },
+    { type: 'LUKS v1 SHA-512 + AES', regex: /^luks-v1-sha512-aes\$\S+$/ },
+    { type: 'LUKS v1 SHA-512 + Serpent', regex: /^luks-v1-sha512-serpent\$\S+$/ },
+    { type: 'LUKS v1 SHA-512 + Twofish', regex: /^luks-v1-sha512-twofish\$\S+$/ },
+    { type: 'LUKS v1 RIPEMD-160 + AES', regex: /^luks-v1-ripemd160-aes\$\S+$/ },
+    { type: 'LUKS v1 RIPEMD-160 + Serpent', regex: /^luks-v1-ripemd160-serpent\$\S+$/ },
+    { type: 'LUKS v1 RIPEMD-160 + Twofish', regex: /^luks-v1-ripemd160-twofish\$\S+$/ },
+    { type: 'KeePass 1 (AES/Twofish) and KeePass 2 (AES) - keyfile only mode', regex: /^keepass-aes-twofish-keyfile-only\$\S+$/ },
+    { type: 'Bisq .wallet (scrypt)', regex: /^bisq-wallet-scrypt\$\S+$/ },
+    { type: 'ENCsecurity Datavault (PBKDF2/no keychain)', regex: /^encsecurity-datavault-pbkdf2-no-keychain\$\S+$/ },
+    { type: 'ENCsecurity Datavault (PBKDF2/keychain)', regex: /^encsecurity-datavault-pbkdf2-keychain\$\S+$/ },
+    { type: 'ENCsecurity Datavault (MD5/no keychain)', regex: /^encsecurity-datavault-md5-no-keychain\$\S+$/ },
+    { type: 'ENCsecurity Datavault (MD5/keychain)', regex: /^encsecurity-datavault-md5-keychain\$\S+$/ },
+    { type: 'Python Werkzeug MD5 (HMAC-MD5 (key = $salt))', regex: /^python-werkzeug-md5-hmac-md5-salt\$\S+$/ },
+    { type: 'Python Werkzeug SHA256 (HMAC-SHA256 (key = $salt))', regex: /^python-werkzeug-sha256-hmac-sha256-salt\$\S+$/ },
+    { type: 'DANE RFC7929/RFC8162 SHA2-256', regex: /^dane-rfc7929-sha2-256\$\S+$/ },
+    { type: 'md5(md5($salt).md5(md5($pass)))', regex: /^md5-md5-salt-md5-md5-pass\$\S+$/ },
+    { type: 'bcrypt(sha256($pass)) / bcryptsha256', regex: /^bcrypt-sha256-pass\$\S+$/ },
+    { type: 'Anope IRC Services (enc_sha256)', regex: /^anope-irc-services-enc-sha256\$\S+$/ },
+    { type: 'Bitcoin raw private key (P2PKH), compressed', regex: /^bitcoin-raw-private-key-p2pkh-compressed\$\S+$/ },
+    { type: 'Bitcoin raw private key (P2PKH), uncompressed', regex: /^bitcoin-raw-private-key-p2pkh-uncompressed\$\S+$/ },
+    { type: 'Bitcoin raw private key (P2WPKH, Bech32), compressed', regex: /^bitcoin-raw-private-key-p2wpkh-compressed\$\S+$/ },
+    { type: 'Bitcoin raw private key (P2WPKH, Bech32), uncompressed', regex: /^bitcoin-raw-private-key-p2wpkh-uncompressed\$\S+$/ },
+    { type: 'Bitcoin raw private key (P2SH(P2WPKH)), compressed', regex: /^bitcoin-raw-private-key-p2sh-p2wpkh-compressed\$\S+$/ },
+    { type: 'Bitcoin raw private key (P2SH(P2WPKH)), uncompressed', regex: /^bitcoin-raw-private-key-p2sh-p2wpkh-uncompressed\$\S+$/ },
+    { type: 'BLAKE2s-256', regex: /^blake2s-256\$\S+$/ },
+    { type: 'SM3', regex: /^sm3\$\S+$/ },
+    { type: 'Veeam VBK', regex: /^veeam-vbk\$\S+$/ },
+    { type: 'MS SNTP', regex: /^ms-sntp\$\S+$/ }
+
+
+
+            // Add more detectors as needed
+        ];
+
+        // Check for bcrypt hash (including salt and cost factor)
+        const bcryptRegex = /^\$2[ayb]\$.{56}$/;
+        if (bcryptRegex.test(input)) {
+            const [, costFactor, salt, hash] = input.split('$');
+            const detectedType = `Detected <b>bcrypt</b> hash<br>Cost Factor: ${costFactor}<br>Salt: ${salt}<br>Hash: ${hash}`;
+            displayResult(detectedType);
+            return;
+        }
+
+
+        
+		
+		
+
+
+        // Check if any detector matches
+        const detectedTypes = [];
+        for (const detector of hashDetectors) {
+            if (detector.regex.test(input)) {
+                detectedTypes.push(detector.type);
+            }
+        }
+
+    // Display the analysis result
+    const resultBox = document.getElementById('resultBox');
+    resultBox.textContent = ''; // Clear previous results
+
+    if (detectedTypes.length > 0) {
+        resultBox.innerHTML = '<strong>Detected Hash Types:</strong><br>';
+        detectedTypes.forEach(type => {
+            resultBox.innerHTML += type + '<br>';
+        });
+    } else {
+        resultBox.innerHTML = '<strong>No hash type detected.</strong>';
+    }
+}
+</script>
+
+</body>
+</html>
