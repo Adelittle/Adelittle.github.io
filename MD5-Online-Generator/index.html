@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD5 Online Generator Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.js"></script>
+    <!-- Sumber: https://cdnjs.com/libraries/crypto-js -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        p {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MD5 Online Generator Tool</h1>
+    
+    <input type="text" id="inputText" placeholder="Enter text...">
+    <button onclick="calculateMD5()">Generate MD5</button><br>
+    
+    <p id="result"></p>
+
+    <script>
+        function calculateMD5() {
+            var inputText = document.getElementById("inputText").value;
+            var hash = CryptoJS.MD5(inputText).toString();
+            document.getElementById("result").innerText = "MD5 Hash: " + hash;
+        }
+    </script>
+</body>
+</html>
