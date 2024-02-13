@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mass URL Manipulation Tool | Remove or Add Http/Https</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        textarea {
+            width: 70%;
+            height: 100px;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        p {
+            font-size: 18px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mass URL Manipulation Tool</h1>
+    
+    <textarea id="inputText" placeholder="Enter multiple URLs, each on a new line..."></textarea><br>
+    <button onclick="applyFunction(addHttps)">Add https://</button>
+    <button onclick="applyFunction(addHttp)">Add http://</button>
+    <button onclick="applyFunction(removeHttps)">Remove https://</button>
+    <button onclick="applyFunction(removeHttp)">Remove http://</button>
+    <button onclick="applyFunction(removeURL)">Remove URL</button>
+    <br>
+    
+    <p id="result"></p>
+
+    <script>
+        function applyFunction(func) {
+            var inputText = document.getElementById("inputText").value;
+            var lines = inputText.split('\n');
+            var result = "";
+
+            for (var i = 0; i < lines.length; i++) {
+                result += func(lines[i]) + "\n";
+            }
+
+            document.getElementById("result").innerText = result.trim();
+        }
+
+        function addHttps(url) {
+            return "https://" + url;
+        }
+
+        function addHttp(url) {
+            return "http://" + url;
+        }
+
+        function removeHttps(url) {
+            return url.replace(/^https:\/\//, '');
+        }
+
+        function removeHttp(url) {
+            return url.replace(/^http:\/\//, '');
+        }
+
+        function removeURL(url) {
+            var match = url.match(/^(https?:\/\/[^\/]+)/);
+            return match ? match[1] : url;
+        }
+    </script>
+</body>
+</html>
