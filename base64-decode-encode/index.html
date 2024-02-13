@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Encode/Decode Online Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Base64 Encode/Decode Tool</h1>
+    
+    <textarea id="inputText" placeholder="Enter text..."></textarea><br>
+    
+    <button onclick="encodeText()">Encode</button>
+    <button onclick="decodeText()">Decode</button><br>
+    
+    <textarea id="outputText" placeholder="Result..." readonly></textarea>
+
+    <script>
+        function encodeText() {
+            var inputText = document.getElementById("inputText").value;
+            var encodedText = btoa(inputText);
+            document.getElementById("outputText").value = encodedText;
+        }
+
+        function decodeText() {
+            var inputText = document.getElementById("inputText").value;
+            try {
+                var decodedText = atob(inputText);
+                document.getElementById("outputText").value = decodedText;
+            } catch (error) {
+                document.getElementById("outputText").value = "Invalid Base64 input";
+            }
+        }
+    </script>
+</body>
+</html>
