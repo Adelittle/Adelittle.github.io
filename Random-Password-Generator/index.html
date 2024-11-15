@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strong Password Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Strong Random Password Generator</h1>
+    <label for="passwordLength">Password Length:</label>
+    <input type="number" id="passwordLength" min="6" max="32" value="12">
+    <br><br>
+    <button onclick="generatePassword()">Generate Password</button>
+    <br><br>
+    <input type="text" id="generatedPassword" readonly>
+    <script>
+        function generatePassword() {
+            const length = document.getElementById("passwordLength").value;
+            const lowerCase = "abcdefghijklmnopqrstuvwxyz";
+            const upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const numbers = "0123456789";
+            const symbols = "!@#$%^&*()_+[]{}|;:',.<>?";
+
+            const allCharacters = lowerCase + upperCase + numbers + symbols;
+            let password = "";
+
+            if (length < 6 || length > 32) {
+                alert("Password length must be between 6 and 32 characters.");
+                return;
+            }
+
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * allCharacters.length);
+                password += allCharacters[randomIndex];
+            }
+
+            document.getElementById("generatedPassword").value = password;
+        }
+    </script>
+</body>
+</html>
