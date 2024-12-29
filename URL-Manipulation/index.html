@@ -4,50 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mass URL Manipulation Tool | Remove or Add Http/Https</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <style>
+        /* General body style */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background: linear-gradient(45deg, #0d1117, #161b22, #30363d);
+            background-size: 400% 400%;
+            animation: gradientAnimation 5s ease infinite;
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Container style */
+        .container {
+            background: #161b22;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7);
+            width: 100%;
+            max-width: 800px;
             text-align: center;
-            margin: 50px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
         }
+
+        /* Heading style - changed color to white */
         h1 {
-            color: #333;
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #ffffff; /* White color */
         }
+
+        /* Textarea style */
         textarea {
-            width: 70%;
-            height: 100px;
+            width: 100%;
+            height: 150px;
             padding: 10px;
             font-size: 16px;
             margin-bottom: 10px;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            background: #161b22;
+            color: #c9d1d9;
         }
+
+        textarea:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+
+        /* Button style */
         button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
             margin: 5px;
+            background: #28a745;
+            border: none;
+            border-radius: 5px;
+            color: white;
         }
+
+        button:hover {
+            background: #218838;
+        }
+
+        /* Result text style - changed color to white */
         p {
             font-size: 18px;
             margin-top: 10px;
+            color: #ffffff; /* White color */
             white-space: pre-wrap;
+        }
+
+        /* Canvas for animated background */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            width: 100vw;
+            height: 100vh;
         }
     </style>
 </head>
 <body>
-    <h1>Mass URL Manipulation Tool</h1>
-    
-    <textarea id="inputText" placeholder="Enter multiple URLs, each on a new line..."></textarea><br>
-    <button onclick="applyFunction(addHttps)">Add https://</button>
-    <button onclick="applyFunction(addHttp)">Add http://</button>
-    <button onclick="applyFunction(removeHttps)">Remove https://</button>
-    <button onclick="applyFunction(removeHttp)">Remove http://</button>
-    <button onclick="applyFunction(removeURL)">Remove URL</button>
-    <br>
-    
-    <p id="result"></p>
+    <!-- Canvas for animated background -->
+    <canvas id="spiderWebCanvas"></canvas>
+
+    <div class="container">
+        <h1>Mass URL Manipulation Tool</h1>
+        <textarea id="inputText" placeholder="Enter multiple URLs, each on a new line..."></textarea><br>
+        <button onclick="applyFunction(addHttps)">Add https://</button>
+        <button onclick="applyFunction(addHttp)">Add http://</button>
+        <button onclick="applyFunction(removeHttps)">Remove https://</button>
+        <button onclick="applyFunction(removeHttp)">Remove http://</button>
+        <button onclick="applyFunction(removeURL)">Remove URL</button>
+        <br><br>
+        <p id="result"></p>
+    </div>
 
     <script>
+        // Function to sanitize input URL
+        function sanitizeURL(input) {
+            const pattern = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i; // Only allow valid URLs starting with http:// or https://
+            return pattern.test(input) ? input : "about:blank";
+        }
+
+        // Function to apply the selected function on the input URLs
         function applyFunction(func) {
             var inputText = document.getElementById("inputText").value;
             var lines = inputText.split('\n');
@@ -60,6 +140,7 @@
             document.getElementById("result").innerText = result.trim();
         }
 
+        // Functions to manipulate the URLs
         function addHttps(url) {
             return "https://" + url;
         }
@@ -80,6 +161,66 @@
             var match = url.match(/^(https?:\/\/[^\/]+)/);
             return match ? match[1] : url;
         }
+
+        // Animated background with interconnected lines on canvas
+        const canvas = document.getElementById("spiderWebCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Create an array to hold points
+        let points = [];
+
+        // Function to generate random points in the canvas
+        function generatePoints(numPoints) {
+            points = [];
+            for (let i = 0; i < numPoints; i++) {
+                points.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height
+                });
+            }
+        }
+
+        // Function to draw interconnected lines between points
+        function drawWeb() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+
+            // Loop through each pair of points and draw a line if they are close enough
+            for (let i = 0; i < points.length; i++) {
+                for (let j = i + 1; j < points.length; j++) {
+                    let dist = Math.sqrt(Math.pow(points[i].x - points[j].x, 2) + Math.pow(points[i].y - points[j].y, 2));
+                    
+                    // Only draw lines if the points are close enough
+                    if (dist < 150) {
+                        let opacity = 1 - dist / 150; // Make the line less visible as the distance increases
+                        ctx.beginPath();
+                        ctx.moveTo(points[i].x, points[i].y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`; // Dynamic opacity
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Add random movement to points to make the web "alive"
+            for (let i = 0; i < points.length; i++) {
+                points[i].x += Math.random() * 2 - 1;
+                points[i].y += Math.random() * 2 - 1;
+            }
+        }
+
+        // Function to animate the web
+        function animateWeb() {
+            generatePoints(50); // Generate 50 random points for the web
+            setInterval(drawWeb, 50); // Redraw the web every 50ms
+        }
+
+        // Start the animation
+        animateWeb();
     </script>
 </body>
 </html>
