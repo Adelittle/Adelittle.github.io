@@ -1,190 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Nakanosec Tools</title>
+<head>
+    <meta charset="UTF-8">
     <meta property="og:image" content="http://tools.nakanosec.com/fix.png" />
-    <meta name="propeller" content="81ccaeb009384bc3cf486e95af60aaa1"/>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
-    <link rel="stylesheet" href="fonts/icomoon/style.css">
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/magnific-popup.css">
-    <link rel="stylesheet" href="css/jquery-ui.css">
-    <link rel="stylesheet" href="css/owl.carousel.min.css">
-    <link rel="stylesheet" href="css/owl.theme.default.min.css">
-    <link rel="stylesheet" href="css/bootstrap-datepicker.css">
-    <link rel="stylesheet" href="fonts/flaticon/font/flaticon.css">
-    <link rel="stylesheet" href="css/aos.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacking Tools</title>
+    <style>
+        body {
+            background: linear-gradient(45deg, #0d1117, #161b22, #30363d);
+            background-size: 400% 400%;
+            animation: gradientAnimation 5s ease infinite;
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-    <link rel="stylesheet" href="css/style.css">
-  </head>
-  <body>
-  
-  <div class="site-wrap">
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
 
-    <div class="site-mobile-menu">
-      <div class="site-mobile-menu-header">
-        <div class="site-mobile-menu-close mt-3">
-          <span class="icon-close2 js-menu-toggle"></span>
-        </div>
-      </div>
-      <div class="site-mobile-menu-body"></div>
-    </div>
-    
-    <header class="site-navbar py-3" role="banner">
-      <div class="container-fluid">
-        <div class="row align-items-center">
-          <div class="col-11 col-xl-2">
-            <h1 class="mb-0"><a href="index.html" class="text-white h2 mb-0">Nakano<span class="text-primary">sec</span> </a></h1>
-          </div>
-          <div class="col-12 col-md-10 d-none d-xl-block">
-            <nav class="site-navigation position-relative text-right" role="navigation">
-              <ul class="site-menu js-clone-nav mx-auto d-none d-lg-block">
-                <li class="active"><a href="index.html">Home</a></li>
-                <li><a href="#">Contributor</a></li>
-                <li><a href="http://facebook.com/nakanosec/">Contacts</a></li>
-                <li class="cta"><a href="http://nakanosec.com/">Blog</a></li>
-              </ul>
-            </nav>
-          </div>
-          <div class="d-inline-block d-xl-none ml-md-0 mr-auto py-3" style="position: relative; top: 3px;"><a href="#" class="site-menu-toggle js-menu-toggle text-white"><span class="icon-menu h3"></span></a></div>
-          </div>
-        </div>
-      </div>
+        header {
+            background: #161b22;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #30363d;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        .tool-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .tool-item {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            width: 250px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .tool-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
+        }
+
+        .tool-item h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+
+        .tool-item p {
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background: #161b22;
+            border-top: 2px solid #30363d;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Tambahkan CSS untuk membuat link tidak merusak tampilan */
+        a {
+            text-decoration: none; /* Hapus garis bawah */
+            color: inherit; /* Warna teks mengikuti warna elemen induk */
+        }
+
+        a:hover {
+            color: #f8f8f8; /* Warna teks saat hover */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Hacking Tools</h1>
     </header>
 
-
-<br><br><br><br>
-    <div class="site-section site-hero">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-md-10">
-            <span class="d-block mb-3 caption" data-aos="fade-up" data-aos-delay="100">Nakanosec.com</span>
-            <h1 class="d-block mb-4" data-aos="fade-up" data-aos-delay="200">Nakanosec Tools</h1>
-            <span class="d-block mb-5 caption" data-aos="fade-up" data-aos-delay="300">Keep Learn Stay Silent</span>
-             <a href="csrf" class="btn-custom" data-aos="fade-up" data-aos-delay="400" ><span>CSRF Generator V.1</span></a>
-            <a href="cors.html" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>CORS Scanner</span></a>
-            <a href="cj.html" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>Clickjacking Test</span></a>
-            <a href="curl-to-php" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>Curl To Php</span></a>
-            <a href="cvss" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>CVSS Calculator</span></a>
-            <a href="jso.html" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>JSO Generator</span></a>
-            <a href="cron.html" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>Crontab Online Generator</span></a>
-            <a href="subdo.html" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>Subdomain Scanner</span></a>
-            <a href="Hash-Identifier" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>Hash Identifier</span></a>
-            <a href="MD5-Online-Generator" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>MD5 Online Generator</span></a>
-            <a href="URL-Encode-Decode" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>URL Encode Decode</span></a>
-            <a href="URL-Manipulation" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>Add Remove Http Https</span></a>
-            <a href="base64-decode-encode" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>Base64 Decode Encode</span></a>
-            <a href="Random-Password-Generator" class="btn-custom" data-aos="fade-up" data-aos-delay="400"><span>Random Password Generator</span></a>
-          </div>
+    <div class="container">
+        <div class="tool-list">
+            <div class="tool-item">
+                <a href="csrf" target="_blank">
+                    <h2>CSRF Generator V.1</h2>
+                    <p>Generate CSRF from BurpSuite Request.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="cors.html" target="_blank">
+                    <h2>CORS Scanner</h2>
+                    <p>Discover CORS vulnerabilities with this tools for penetration testing.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="cj.html" target="_blank">
+                    <h2>Clickjacking Test</h2>
+                    <p>Check your target agains Clickjacking vulnerability.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="curl-to-php" target="_blank">
+                    <h2>Curl To Php</h2>
+                    <p>This tool turns a Curl command into PHP code.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="cvss" target="_blank">
+                    <h2>CVSS Calculator</h2>
+                    <p>Illustrated graphical Common Vulnerability Scoring System (CVSS).</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="jso.html" target="_blank">
+                    <h2>JSO Generator</h2>
+                    <p>Create Overlay payload for Deface website.</p>
+                </a>
+            </div>
+                        <div class="tool-item">
+                <a href="cron.html" target="_blank">
+                    <h2>Crontab Online Generator</h2>
+                    <p>Generate crontab commands online.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="subdo.html" target="_blank">
+                    <h2>Subdomain Scanner</h2>
+                    <p>Find subdomains for penetration testing.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="Hash-Identifier" target="_blank">
+                    <h2>Hash Identifier</h2>
+                    <p>Identify the hashing algorithm used.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="MD5-Online-Generator" target="_blank">
+                    <h2>MD5 Online Generator</h2>
+                    <p>Generate MD5 hashes online.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="URL-Encode-Decode" target="_blank">
+                    <h2>URL Encode Decode</h2>
+                    <p>Encode or decode URLs.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="URL-Manipulation" target="_blank">
+                    <h2>Add Remove Http Https</h2>
+                    <p>Manipulate URLs by adding or removing HTTP/HTTPS.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="base64-decode-encode" target="_blank">
+                    <h2>Base64 Decode Encode</h2>
+                    <p>Encode or decode Base64 strings.</p>
+                </a>
+            </div>
+            <div class="tool-item">
+                <a href="Random-Password-Generator" target="_blank">
+                    <h2>Random Password Generator</h2>
+                    <p>Generate random passwords for security.</p>
+                </a>
+            </div>
         </div>
-      </div>
     </div>
 
-
-    <div class="site-section">
-      <div class="container">
-        <div class="row mb-5">
-          <div class="col-lg-4" data-aos="fade-up">
-            <div class="site-section-heading">
-              <h2>Contributor</h2>
-            </div>
-          </div>
-          <div class="col-lg-6 mt-5 pl-lg-5" data-aos="fade-up" data-aos-delay="100">
-            <p>Dibawah ini adalah nama nama orang yang berkontribusi terhadap situs nakanosec.</p>
-          </div>
-        </div>
-
-        <div class="row align-items-stretch program">
-          <div class="col-12 border-top border-bottom py-5" data-aos="fade" data-aos-delay="200">
-            <div class="row align-items-stretch">
-              <div class="col-md-3 text-white mb-3 mb-md-0"><span class="h4">Code</span> <span>01</span></div>
-              <div class="col-md-9">
-                <h2 class="text-white">Teguh Aprianto</h2>
-                <span>Donate Vps</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-12 border-bottom py-5" data-aos="fade" data-aos-delay="300">
-            <div class="row align-items-stretch">
-              <div class="col-md-3 text-white mb-3 mb-md-0"><span class="h4">Code</span> <span>02</span></div>
-              <div class="col-md-9">
-                <h2 class="text-white">Eka Syahwan</h2>
-                <span>CORS Scanner</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-12 border-bottom py-5" data-aos="fade" data-aos-delay="400">
-            <div class="row align-items-stretch">
-              <div class="col-md-3 text-white mb-3 mb-md-0"><span class="h4">Code</span> <span>03</span></div>
-              <div class="col-md-9">
-                <h2 class="text-white">Merttasci</h2>
-                <span>CSRF Generator V.1</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-12 border-bottom py-5" data-aos="fade" data-aos-delay="500">
-            <div class="row align-items-stretch">
-              <div class="col-md-3 text-white mb-3 mb-md-0"><span class="h4">Code</span> <span>04</span></div>
-              <div class="col-md-9">
-                <h2 class="text-white">Anonim</h2>
-                <span>CSRF Generator V.2 & CLickjacking</span>
-              </div>
-            </div>
-          </div>
-
- <div class="col-12 border-bottom py-5" data-aos="fade" data-aos-delay="500">
-            <div class="row align-items-stretch">
-              <div class="col-md-3 text-white mb-3 mb-md-0"><span class="h4">Code</span> <span>05</span></div>
-              <div class="col-md-9">
-                <h2 class="text-white">Exploit-Kita</h2>
-                <span>Domain Parser, Domain Grabber, Remove Duplicated</span>
-              </div>
-            </div>
-          </div>
-
-  <div class="col-12 border-bottom py-5" data-aos="fade" data-aos-delay="500">
-            <div class="row align-items-stretch">
-              <div class="col-md-3 text-white mb-3 mb-md-0"><span class="h4">Code</span> <span>06</span></div>
-              <div class="col-md-9">
-                <h2 class="text-white">Muhammad Febriansyah</h2>
-                <span>Vulnerability Report XSS - @antisechacker</span>
-              </div>
-            </div>
-          </div>
-            <div class="col-md-12 text-center">
-              <div class="border-top pt-5">
-              <p>
-              <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-              Copyright &copy; <script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="icon-heart text-primary" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank" >Colorlib</a>
-              <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <footer>
+        <p>&copy; 2024 Hacking Tools. Stay ethical!</p>
     </footer>
-    
-  </div>
 
-  <script src="js/jquery-3.3.1.min.js"></script>
-  <script src="js/jquery-migrate-3.0.1.min.js"></script>
-  <script src="js/jquery-ui.js"></script>
-  <script src="js/popper.min.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/owl.carousel.min.js"></script>
-  <script src="js/jquery.stellar.min.js"></script>
-  <script src="js/jquery.countdown.min.js"></script>
-  <script src="js/jquery.magnific-popup.min.js"></script>
-  <script src="js/bootstrap-datepicker.min.js"></script>
-  <script src="js/aos.js"></script>
+    <canvas id="spiderWebCanvas"></canvas>
 
-  <script src="js/main.js"></script>
-  
-  </body>
+    <script>
+        const canvas = document.getElementById('spiderWebCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Create an array to hold points
+        let points = [];
+
+        // Function to generate random points in the canvas
+        function generatePoints(numPoints) {
+            points = [];
+            for (let i = 0; i < numPoints; i++) {
+                points.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height
+                });
+            }
+        }
+
+        // Function to draw interconnected lines between points
+        function drawWeb() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+
+            // Loop through each pair of points and draw a line if they are close enough
+            for (let i = 0; i < points.length; i++) {
+                for (let j = i + 1; j < points.length; j++) {
+                    let dist = Math.sqrt(Math.pow(points[i].x - points[j].x, 2) + Math.pow(points[i].y - points[j].y, 2));
+                    
+                    // Only draw lines if the points are close enough
+                    if (dist < 150) {
+                        let opacity = 1 - dist / 150; // Make the line less visible as the distance increases
+                        ctx.beginPath();
+                        ctx.moveTo(points[i].x, points[i].y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`; // Dynamic opacity
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Add random movement to points to make the web "alive"
+            for (let i = 0; i < points.length; i++) {
+                points[i].x += Math.random() * 2 - 1;
+                points[i].y += Math.random() * 2 - 1;
+            }
+        }
+
+        // Function to animate the web
+        function animateWeb() {
+            generatePoints(100); // Generate 50 random points for the web
+            setInterval(drawWeb, 10); // Redraw the web every 50ms
+        }
+
+        // Start the animation
+        animateWeb();
+    </script>
+</body>
 </html>
-
