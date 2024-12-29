@@ -1,29 +1,225 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>Nakanosec - CORS Scanner Online</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nakanosec - CORS Scanner Online</title>
+    <style>
+        body {
+            background: linear-gradient(45deg, #0d1117, #161b22, #30363d);
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        h3 {
+            margin: 10px;
+        }
+
+        .input-container {
+            margin: 20px 0;
+        }
+
+        .input-container input {
+            padding: 10px;
+            width: 300px;
+            margin-right: 10px;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            background: #161b22;
+            color: #c9d1d9;
+        }
+
+        .input-container button {
+            padding: 10px 20px;
+            background: #28a745;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .input-container button:hover {
+            background: #218838;
+        }
+
+        pre {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #30363d;
+            width: 80%;
+            max-width: 500px;
+            overflow-x: auto;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #161b22;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .popup h1 {
+            color: #e63946;
+            margin-bottom: 10px;
+        }
+
+        .popup p {
+            font-size: 1.2em;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .popup button:hover {
+            background: #218838;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
-<h3>CORS exploit online scanner</h3>
-<input type="text" name="target" placeholder="Target URL" autocomplete="off"> <button type="submit" onclick="submit()">Exploit Now!</button><br>
-<pre id="result"></pre>
-<script type="text/javascript">
-	function submit() {
-	  	var url 	= document.getElementsByName("target")[0].value;
-		alert("Tested CORS : "+url);
-		var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-              document.getElementById("result").innerHTML = '<pre>Respons (Status : <b>VULN</b> | status code : '+this.status+'):<br><br><textarea style="margin: 0px; width: 411px; height: 436px;"">'+this.responseText+'</textarea></pre>'
-        }else{
-            document.getElementById("result").innerHTML = "<pre>Respons (status : Not Vuln) : respons tidak ada , status code "+this.status+"</pre>";
+    <canvas id="spiderWebCanvas"></canvas>
+
+    <h3>CORS exploit online scanner</h3>
+    <div class="input-container">
+        <input type="text" name="target" placeholder="Target URL" autocomplete="off">
+        <button type="submit" onclick="submit()">Exploit Now!</button>
+    </div>
+    <pre id="result"></pre>
+
+    <!-- Popup -->
+    <div id="overlay"></div>
+    <div class="popup">
+        <h1>Under Maintenance</h1>
+        <p>We are currently performing updates. Please check back later.</p>
+        <button onclick="closePopup()">Okay</button>
+    </div>
+
+    <script>
+        function sanitizeInput(input) {
+            const div = document.createElement('div');
+            div.textContent = input;
+            return div.textContent;
         }
-        };
-      xhttp.open("GET", url, true);
-      xhttp.withCredentials = true;
-      xhttp.send();
-	}
-</script>
+
+        function submit() {
+            const targetInput = document.getElementsByName("target")[0];
+            const url = sanitizeInput(targetInput.value.trim());
+
+            if (!url) {
+                alert("Please enter a valid URL.");
+                return;
+            }
+
+            alert("Testing CORS for: " + url);
+            const xhttp = new XMLHttpRequest();
+
+            xhttp.onreadystatechange = function () {
+                const resultContainer = document.getElementById("result");
+                if (this.readyState === 4) {
+                    if (this.status === 200) {
+                        resultContainer.textContent =
+                            "Response (Status: VULN | Status Code: " + this.status + "):\n" +
+                            this.responseText;
+                    } else {
+                        resultContainer.textContent =
+                            "Response (Status: Not Vulnerable): No response, status code " +
+                            this.status;
+                    }
+                }
+            };
+
+            xhttp.open("GET", url, true);
+            xhttp.withCredentials = true;
+            xhttp.send();
+        }
+
+        function closePopup() {
+            document.querySelector(".popup").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+
+        // Interconnected lines background
+        const canvas = document.getElementById('spiderWebCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const points = Array.from({ length: 50 }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2
+        }));
+
+        function drawLines() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            points.forEach((point, i) => {
+                point.x += point.vx;
+                point.y += point.vy;
+
+                if (point.x < 0 || point.x > canvas.width) point.vx *= -1;
+                if (point.y < 0 || point.y > canvas.height) point.vy *= -1;
+
+                for (let j = i + 1; j < points.length; j++) {
+                    const dist = Math.hypot(point.x - points[j].x, point.y - points[j].y);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(point.x, point.y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${1 - dist / 150})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            });
+
+            requestAnimationFrame(drawLines);
+        }
+
+        drawLines();
+    </script>
 </body>
 </html>
