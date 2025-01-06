@@ -1,85 +1,185 @@
-
 <!DOCTYPE html>
-<link href="" rel="icon" type="image/x-icon"/>
-<link href="https://fonts.googleapis.com/css?family=Homenaje" rel="stylesheet" type="text/css">
-<style>
-body{
-background-color: #000d2a;
-background-size: cover;
-background-attachment: fixed; 
-text-align: center;
-font-face: homenaje;
-} 
-
-.t3x {
-border: 2px solid #FFFFFF;
-   width: 550;
-   height: 35px;
-   padding-left: 5px;
-   margin: 10px auto;
-   resize: none;
-   background: transparent;
-   color: white;
-   font-family: 'homenaje';
-   font-size: 18px;
-}
-
-.ryuu {
-border: 2px solid #FFFFFF;
-   width: 120;
-   height: 30px;
-   padding-left: 5px;
-   margin: 10px auto;
-   resize: none;
-   background: transparent;
-   color: #FFFFFF;
-   font-family: 'homenaje';
-   font-size: 18px;
-}
-</style>
-<html>
+<html lang="en">
 <head>
-   <title>Nakanosec - Script JSO Creator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nakanosec - Script JSO Creator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Homenaje&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Homenaje', sans-serif;
+            color: #c9d1d9;
+            background: linear-gradient(45deg, #0d1117, #161b22, #30363d);
+            background-size: 400% 400%;
+            animation: gradientAnimation 5s ease infinite;
+            overflow: hidden;
+        }
 
-<font face="homenaje" size="10" color="#02BC8C">[+]</font><u><font face="homenaje" size="10" color="white">JSO Creator Online </font></u><font face="homenaje" size="10" color="#02BC8C">[+]</u><br><br>
-   <script>
-       function runCharCodeAt() {
-           input = document.charCodeAt.input.value;
-           output = "";
-           for(i=0; i<input.length; ++i) {
-               if (output != "") output += ", ";
-               output += input.charCodeAt(i);
-           }
-           document.charCodeAt.output.value = output;
-       }
-   </script>
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            z-index: 1;
+            position: relative;
+            text-align: center;
+            padding: 20px;
+        }
+
+        textarea, input[type="button"] {
+            border: 2px solid #FFFFFF;
+            border-radius: 5px;
+            margin: 10px;
+            background: transparent;
+            color: #FFFFFF;
+            font-family: 'Homenaje', sans-serif;
+            font-size: 18px;
+        }
+
+        textarea {
+            width: 80%;
+            height: 200px;
+            padding: 10px;
+        }
+
+        input[type="button"] {
+            width: 120px;
+            height: 40px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="button"]:hover {
+            background-color: #02BC8C;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background: #161b22;
+            color: #fff;
+            border-top: 2px solid #30363d;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
-<center>
-   <form name="charCodeAt" method="post">
-       <textarea class="t3x" name="input" style="width: 600px;height: 250px;" placeholder="Script Deface.."></textarea><br>
-       <input type="button" class="ryuu" onclick="runCharCodeAt()" value="Convert!"/>
-       <br>
-       <textarea class="t3x" name="output" style="width: 600px;height: 250px;" placeholder="Nanti hasil charcode nya disini.."></textarea><br>
-   </form>
+    <header>
+        <h1>Script JSO Creator</h1>
+    </header>
+    <div class="container">
+        <form name="charCodeAt" method="post">
+            <textarea name="input" placeholder="HTML Script Here.."></textarea><br>
+            <input type="button" onclick="runCharCodeAt()" value="Convert!" /><br>
+            <textarea name="output" placeholder="Output.."></textarea><br>
+        </form>
+    </div>
+    <footer>
+        &copy; 2024 Nakanosec
+    </footer>
 
-<u><font face="homenaje" size="4" color="white">Tutorial</u><font>
-<font face="homenaje" size="3" color="white"><br>Step1. Copas tulisan ini :<br> 
-document.documentElement.innerHTML=String.fromCharCode(<font face="homenaje" size="3" color="#02BC8C">isi dengan kode yang tadi kalian Salin tanpa spasi disini</font>)<br></font>
-<font face="homenaje" size="3" color="white"><br>Step2. Pergi ke pastebin.com :<br>
-Klik "create new paste" > klik raw > copy link (misal: <font face="homenaje" size="3" color="#02BC8C">https://pastebin.com/raw/blabla</font>)<br>
-</font>
-<font face="homenaje" size="3" color="white"><br>Step3. ganti link pastebin pada code dibawah dengan link kalian :<br>
-&lt;script type="text/javascript" src="<font face="homenaje" size="3" color="#02BC8C">https://pastebin.com/raw/blabla</font>"&gt;&lt;/script&gt;</font>
-    <br>
-<a href="https://www.nakanosec.com/"><font face="homenaje" size="2" color="white"> >> Klik Untuk Kembali ke Blog Nakanosec.com << </a></font>
-   <br>
-</center>
-</body>
-<hr>
-<footer>
-<font face="homenaje" size="5" color="white"></font><br>
-<font face="homenaje" size="5" color="white"></font>
-</div>
+    <canvas id="spiderWebCanvas"></canvas>
+
+    <script>
+        function runCharCodeAt() {
+            const input = document.charCodeAt.input.value;
+            let output = "";
+            for (let i = 0; i < input.length; ++i) {
+                if (output !== "") output += ", ";
+                output += input.charCodeAt(i);
+            }
+            document.charCodeAt.output.value = output;
+        }
+
+        const canvas = document.getElementById('spiderWebCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Create an array to hold points
+        let points = [];
+
+        // Function to generate random points in the canvas
+        function generatePoints(numPoints) {
+            points = [];
+            for (let i = 0; i < numPoints; i++) {
+                points.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    dx: Math.random() * 2 - 1,
+                    dy: Math.random() * 2 - 1,
+                });
+            }
+        }
+
+        // Function to draw interconnected lines between points
+        function drawWeb() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+
+            for (let i = 0; i < points.length; i++) {
+                for (let j = i + 1; j < points.length; j++) {
+                    const dist = Math.sqrt(
+                        Math.pow(points[i].x - points[j].x, 2) +
+                        Math.pow(points[i].y - points[j].y, 2)
+                    );
+
+                    if (dist < 150) {
+                        const opacity = 1 - dist / 150; // Line transparency based on distance
+                        ctx.beginPath();
+                        ctx.moveTo(points[i].x, points[i].y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Update points position
+            for (let i = 0; i < points.length; i++) {
+                points[i].x += points[i].dx;
+                points[i].y += points[i].dy;
+
+                // Bounce off the edges
+                if (points[i].x < 0 || points[i].x > canvas.width) points[i].dx *= -1;
+                if (points[i].y < 0 || points[i].y > canvas.height) points[i].dy *= -1;
+            }
+        }
+
+        // Animation function
+        function animateWeb() {
+            drawWeb();
+            requestAnimationFrame(animateWeb);
+        }
+
+        // Start the animation
+        generatePoints(100);
+        animateWeb();
+    </script>
 </body>
 </html>
