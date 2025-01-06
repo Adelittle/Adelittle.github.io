@@ -6,42 +6,184 @@
     <title>Strong Password Generator</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
+            font-family: 'Courier New', Courier, monospace;
+            background: linear-gradient(45deg, #0d1117, #161b22, #30363d);
+            color: #c9d1d9;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
         }
-        input[type="text"] {
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], input[type="number"] {
             width: 300px;
             padding: 10px;
             font-size: 16px;
+            margin-bottom: 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            color: #c9d1d9;
         }
+
         button {
             padding: 10px 20px;
             font-size: 16px;
-            margin-top: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        label {
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .options {
+            margin-bottom: 20px;
+        }
+
+        .output-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        #generatedPassword {
+            width: 250px;
+            padding: 12px;
+            font-size: 16px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            color: #c9d1d9;
+            text-align: center;
+            margin-right: 10px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
+    <canvas id="spiderWebCanvas"></canvas>
+
     <h1>Strong Random Password Generator</h1>
+    
     <label for="passwordLength">Password Length:</label>
     <input type="number" id="passwordLength" min="6" max="32" value="12">
-    <br><br>
+    
+    <div class="options">
+        <label><input type="checkbox" id="includeLowerCase" checked> Lowercase</label>
+        <label><input type="checkbox" id="includeUpperCase" checked> Uppercase</label>
+        <label><input type="checkbox" id="includeNumbers" checked> Numbers</label>
+        <label><input type="checkbox" id="includeSymbols" checked> Symbols</label>
+    </div>
+
     <button onclick="generatePassword()">Generate Password</button>
-    <br><br>
-    <input type="text" id="generatedPassword" readonly>
+
+    <div class="output-container">
+        <input type="text" id="generatedPassword" readonly>
+        <button onclick="copyPassword()">Copy</button>
+    </div>
+
     <script>
+        // Function to generate random points for web animation
+        const canvas = document.getElementById('spiderWebCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let points = [];
+        function generatePoints(numPoints) {
+            points = [];
+            for (let i = 0; i < numPoints; i++) {
+                points.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    dx: Math.random() * 2 - 1,
+                    dy: Math.random() * 2 - 1,
+                });
+            }
+        }
+
+        function drawWeb() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < points.length; i++) {
+                for (let j = i + 1; j < points.length; j++) {
+                    const dist = Math.sqrt(Math.pow(points[i].x - points[j].x, 2) + Math.pow(points[i].y - points[j].y, 2));
+                    if (dist < 50) {
+                        const opacity = 1 - dist / 150;
+                        ctx.beginPath();
+                        ctx.moveTo(points[i].x, points[i].y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            for (let i = 0; i < points.length; i++) {
+                points[i].x += points[i].dx;
+                points[i].y += points[i].dy;
+                if (points[i].x < 0 || points[i].x > canvas.width) points[i].dx *= -1;
+                if (points[i].y < 0 || points[i].y > canvas.height) points[i].dy *= -1;
+            }
+        }
+
+        function animateWeb() {
+            drawWeb();
+            requestAnimationFrame(animateWeb);
+        }
+
+        generatePoints(100);
+        animateWeb();
+
         function generatePassword() {
             const length = document.getElementById("passwordLength").value;
+            const includeLowerCase = document.getElementById("includeLowerCase").checked;
+            const includeUpperCase = document.getElementById("includeUpperCase").checked;
+            const includeNumbers = document.getElementById("includeNumbers").checked;
+            const includeSymbols = document.getElementById("includeSymbols").checked;
+
             const lowerCase = "abcdefghijklmnopqrstuvwxyz";
             const upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             const numbers = "0123456789";
             const symbols = "!@#$%^&*()_+[]{}|;:',.<>?";
 
-            const allCharacters = lowerCase + upperCase + numbers + symbols;
-            let password = "";
+            let allCharacters = "";
+            if (includeLowerCase) allCharacters += lowerCase;
+            if (includeUpperCase) allCharacters += upperCase;
+            if (includeNumbers) allCharacters += numbers;
+            if (includeSymbols) allCharacters += symbols;
 
+            if (allCharacters === "") {
+                alert("You must select at least one character type.");
+                return;
+            }
+
+            let password = "";
             if (length < 6 || length > 32) {
                 alert("Password length must be between 6 and 32 characters.");
                 return;
@@ -53,6 +195,13 @@
             }
 
             document.getElementById("generatedPassword").value = password;
+        }
+
+        function copyPassword() {
+            const passwordField = document.getElementById("generatedPassword");
+            passwordField.select();
+            document.execCommand("copy");
+            alert("Password copied to clipboard!");
         }
     </script>
 </body>
