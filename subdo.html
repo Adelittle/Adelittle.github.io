@@ -1,43 +1,154 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Javascript Subdomain Scanner</title>
-  </head>
-  <body>
+    <style>
+        body {
+            background: linear-gradient(45deg, #0d1117, #161b22, #30363d);
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .input-container {
+            margin: 20px 0;
+        }
+
+        .input-container input {
+            padding: 10px;
+            width: 300px;
+            margin-right: 10px;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            background: #161b22;
+            color: #c9d1d9;
+        }
+
+        .input-container button {
+            padding: 10px 20px;
+            background: #28a745;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .input-container button:hover {
+            background: #218838;
+        }
+
+        pre, p {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #30363d;
+            width: 80%;
+            max-width: 500px;
+            overflow-x: auto;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
     <h1>Nakanosec - Subdomain Scanner Javascript</h1>
 
+    <div class="input-container">
+        <input type="text" id="myInput" placeholder="Enter a domain...">
+        <button type="button" onclick="getInputValue();">Scan</button>
+    </div>
 
-    <input type="text" placeholder="Type something..." id="myInput">
-    <button type="button" onclick="getInputValue();">Get Value</button>
- 
-     <h2>Output :</h2>
- <p id="demo"></p>
- 
- <script>
-      function getInputValue() {
-        // Selecting the input element and get its value
-        var inputVal = document.getElementById("myInput").value;
+    <h2>Output:</h2>
+    <p id="demo">Results will appear here...</p>
 
-        //var town ='garstang';
-        var anuan = inputVal;
+    <!-- Canvas for animated lines -->
+    <canvas id="spiderWebCanvas"></canvas>
 
-        var url = "https://api.hackertarget.com/hostsearch/?q";
+    <script>
+        // Function to fetch subdomain data
+        function getInputValue() {
+            const inputVal = document.getElementById("myInput").value.trim();
 
-        var requestOptions = {
-          method: 'GET',
-          redirect: 'follow'
+            if (!inputVal) {
+                alert("Please enter a domain.");
+                return;
+            }
 
-        };
+            const url = "https://api.hackertarget.com/hostsearch/?q=";
 
-        fetch(url + '=' + anuan, requestOptions)
-          .then(response => response.text())
-          // .then(result => console.log(result))
-          .then(result => document.getElementById("demo").innerText =
-            (result))
-          .catch(error => console.log('error', error));  
-      }
+            fetch(url + encodeURIComponent(inputVal))
+                .then(response => response.text())
+                .then(result => {
+                    document.getElementById("demo").innerText = result || "No data found.";
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById("demo").innerText = "Error fetching data.";
+                });
+        }
+
+        // Interconnected lines animation
+        const canvas = document.getElementById('spiderWebCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const points = Array.from({ length: 50 }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2
+        }));
+
+        function drawLines() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            points.forEach((point, i) => {
+                point.x += point.vx;
+                point.y += point.vy;
+
+                if (point.x < 0 || point.x > canvas.width) point.vx *= -1;
+                if (point.y < 0 || point.y > canvas.height) point.vy *= -1;
+
+                for (let j = i + 1; j < points.length; j++) {
+                    const dist = Math.hypot(point.x - points[j].x, point.y - points[j].y);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(point.x, point.y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${1 - dist / 150})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            });
+
+            requestAnimationFrame(drawLines);
+        }
+
+        drawLines();
     </script>
-
-  </body>
+</body>
 </html>
