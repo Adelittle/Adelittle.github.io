@@ -6,34 +6,76 @@
     <title>MD5 Online Generator Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.js"></script>
-    <!-- Sumber: https://cdnjs.com/libraries/crypto-js -->
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            text-align: center;
-            margin: 50px;
+            background: linear-gradient(45deg, #0d1117, #161b22, #30363d);
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
         }
+
         h1 {
-            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 20px;
         }
+
         input {
             padding: 10px;
             font-size: 16px;
+            width: 300px;
             margin-bottom: 10px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            color: #c9d1d9;
         }
+
         button {
             padding: 10px 20px;
             font-size: 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
         }
+
+        button:hover {
+            background: #218838;
+        }
+
         p {
             font-size: 18px;
-            margin-top: 10px;
+            margin-top: 20px;
+            background: #161b22;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #30363d;
+            width: 300px;
+            text-align: center;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
     </style>
 </head>
 <body>
+
     <h1>MD5 Online Generator Tool</h1>
     
     <input type="text" id="inputText" placeholder="Enter text...">
@@ -41,12 +83,56 @@
     
     <p id="result"></p>
 
+    <canvas id="spiderWebCanvas"></canvas>
+
     <script>
         function calculateMD5() {
             var inputText = document.getElementById("inputText").value;
             var hash = CryptoJS.MD5(inputText).toString();
             document.getElementById("result").innerText = "MD5 Hash: " + hash;
         }
+
+        // Interconnected lines background
+        const canvas = document.getElementById('spiderWebCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const points = Array.from({ length: 50 }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2
+        }));
+
+        function drawLines() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            points.forEach((point, i) => {
+                point.x += point.vx;
+                point.y += point.vy;
+
+                if (point.x < 0 || point.x > canvas.width) point.vx *= -1;
+                if (point.y < 0 || point.y > canvas.height) point.vy *= -1;
+
+                for (let j = i + 1; j < points.length; j++) {
+                    const dist = Math.hypot(point.x - points[j].x, point.y - points[j].y);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(point.x, point.y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${1 - dist / 150})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            });
+
+            requestAnimationFrame(drawLines);
+        }
+
+        drawLines();
     </script>
 </body>
 </html>
