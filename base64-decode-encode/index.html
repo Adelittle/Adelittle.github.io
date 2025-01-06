@@ -6,28 +6,74 @@
     <title>Base64 Encode/Decode Online Tool</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            text-align: center;
-            margin: 50px;
+            background: linear-gradient(45deg, #0d1117, #161b22, #30363d);
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
         }
+
         h1 {
-            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 20px;
         }
+
         textarea {
-            width: 100%;
+            width: 300px;
             height: 100px;
             margin: 10px 0;
             padding: 10px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            color: #c9d1d9;
         }
+
         button {
             padding: 10px 20px;
             font-size: 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        #outputText {
+            width: 300px;
+            height: 100px;
+            padding: 10px;
+            margin-top: 10px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            color: #c9d1d9;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
+
     <h1>Base64 Encode/Decode Tool</h1>
     
     <textarea id="inputText" placeholder="Enter text..."></textarea><br>
@@ -36,6 +82,8 @@
     <button onclick="decodeText()">Decode</button><br>
     
     <textarea id="outputText" placeholder="Result..." readonly></textarea>
+
+    <canvas id="spiderWebCanvas"></canvas>
 
     <script>
         function encodeText() {
@@ -53,6 +101,48 @@
                 document.getElementById("outputText").value = "Invalid Base64 input";
             }
         }
+
+        // Interconnected lines background
+        const canvas = document.getElementById('spiderWebCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const points = Array.from({ length: 50 }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2
+        }));
+
+        function drawLines() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            points.forEach((point, i) => {
+                point.x += point.vx;
+                point.y += point.vy;
+
+                if (point.x < 0 || point.x > canvas.width) point.vx *= -1;
+                if (point.y < 0 || point.y > canvas.height) point.vy *= -1;
+
+                for (let j = i + 1; j < points.length; j++) {
+                    const dist = Math.hypot(point.x - points[j].x, point.y - points[j].y);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(point.x, point.y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${1 - dist / 150})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            });
+
+            requestAnimationFrame(drawLines);
+        }
+
+        drawLines();
     </script>
 </body>
 </html>
