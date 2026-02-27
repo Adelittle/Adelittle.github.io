@@ -299,30 +299,28 @@
         }, 200);
     });
 
-    /* ---- Blog Fetch ---- */
-    function fetchBlogPosts() {
-        var feedUrl = 'https://www.nakanosec.com/feeds/posts/default?alt=json&max-results=6';
+    /* ---- Blog Fetch (Using JSONP to bypass CORS) ---- */
+    window.handleBlogPosts = function (data) {
+        var entries = data.feed.entry;
+        if (!entries || entries.length === 0) {
+            showBlogError();
+            return;
+        }
+        blogGrid.innerHTML = '';
+        entries.forEach(function (entry) {
+            blogGrid.appendChild(createBlogCard(entry));
+        });
+        observeRevealElements();
+    };
 
-        fetch(feedUrl)
-            .then(function (response) {
-                if (!response.ok) throw new Error('Feed fetch failed');
-                return response.json();
-            })
-            .then(function (data) {
-                var entries = data.feed.entry;
-                if (!entries || entries.length === 0) {
-                    showBlogError();
-                    return;
-                }
-                blogGrid.innerHTML = '';
-                entries.forEach(function (entry) {
-                    blogGrid.appendChild(createBlogCard(entry));
-                });
-                observeRevealElements();
-            })
-            .catch(function () {
-                showBlogError();
-            });
+    function fetchBlogPosts() {
+        var feedUrl = 'https://www.nakanosec.com/feeds/posts/default?alt=json-in-script&callback=handleBlogPosts&max-results=6';
+        var script = document.createElement('script');
+        script.src = feedUrl;
+        script.onerror = function () {
+            showBlogError();
+        };
+        document.body.appendChild(script);
     }
 
     function createBlogCard(entry) {
