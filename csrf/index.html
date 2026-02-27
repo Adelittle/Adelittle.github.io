@@ -19,6 +19,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../tools.css">
+    <link rel="icon" type="image/png" href="https://tools.nakanosec.com/nakanosec.png">
 </head>
 
 <body>
@@ -117,6 +118,7 @@
             }
 
             function generatePoC(req) {
+    <link rel="icon" type="image/png" href="https://tools.nakanosec.com/nakanosec.png">
                 var html = '<html>\n<head>\n  <title>CSRF PoC</title>\n</head>\n<body>\n';
                 html += '  <h1>CSRF Proof of Concept</h1>\n';
                 html += '  <form action="' + escapeHtml(req.url) + '" method="' + escapeHtml(req.method) + '"';
