@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Debugger — Nakanosec Tools</title>
+    <meta name="description"
+        content="Decode, inspect, and encode JSON Web Tokens (JWT) entirely in-browser. Verify HMAC signatures.">
+    <link rel="canonical" href="https://tools.nakanosec.com/jwt/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+    <style>
+        .jwt-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem
+        }
+
+        @media(max-width:900px) {
+            .jwt-layout {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .jwt-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem
+        }
+
+        .jwt-panel {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .07);
+            border-radius: 12px;
+            padding: 1.1rem 1.25rem
+        }
+
+        .jwt-panel h3 {
+            font-size: .8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: rgba(255, 255, 255, .4);
+            margin: 0 0 .7rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem
+        }
+
+        .jwt-textarea {
+            width: 100%;
+            min-height: 180px;
+            background: #0a0e17;
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 8px;
+            padding: .9rem 1rem;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .82rem;
+            line-height: 1.6;
+            resize: vertical;
+            word-break: break-all
+        }
+
+        .jwt-textarea:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, .5)
+        }
+
+        .jwt-textarea.encoded {
+            color: transparent;
+            caret-color: #e2e8f0;
+            position: relative
+        }
+
+        .jwt-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: .9rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .82rem;
+            line-height: 1.6;
+            pointer-events: none;
+            word-break: break-all;
+            white-space: pre-wrap;
+            overflow: hidden
+        }
+
+        .jwt-overlay .jwt-h {
+            color: #fb7185
+        }
+
+        .jwt-overlay .jwt-p {
+            color: #a78bfa
+        }
+
+        .jwt-overlay .jwt-s {
+            color: #38bdf8
+        }
+
+        .jwt-overlay .jwt-dot {
+            color: rgba(255, 255, 255, .3)
+        }
+
+        .jwt-encoded-wrap {
+            position: relative
+        }
+
+        .jwt-decoded-box {
+            width: 100%;
+            min-height: 100px;
+            background: #0a0e17;
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 8px;
+            padding: .9rem 1rem;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .8rem;
+            line-height: 1.5;
+            resize: vertical;
+            white-space: pre-wrap;
+            word-break: break-word
+        }
+
+        .jwt-decoded-box:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, .5)
+        }
+
+        .jwt-label {
+            font-size: .72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: .35rem;
+            display: flex;
+            align-items: center;
+            gap: .4rem
+        }
+
+        .jwt-label-header {
+            color: #fb7185
+        }
+
+        .jwt-label-payload {
+            color: #a78bfa
+        }
+
+        .jwt-label-sig {
+            color: #38bdf8
+        }
+
+        .jwt-label-verify {
+            color: #94a3b8
+        }
+
+        .jwt-verify-status {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .3rem .8rem;
+            border-radius: 16px;
+            font-size: .78rem;
+            font-weight: 600;
+            margin-top: .5rem
+        }
+
+        .jwt-verify-status.valid {
+            background: rgba(34, 197, 94, .12);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .jwt-verify-status.invalid {
+            background: rgba(248, 113, 113, .1);
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, .25)
+        }
+
+        .jwt-verify-status.unknown {
+            background: rgba(148, 163, 184, .08);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, .15)
+        }
+
+        .jwt-secret-input {
+            width: 100%;
+            background: #0a0e17;
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 8px;
+            padding: .5rem .75rem;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .8rem
+        }
+
+        .jwt-secret-input:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, .5)
+        }
+
+        .jwt-algo-select {
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 6px;
+            padding: .35rem .6rem;
+            color: #fff;
+            font-size: .8rem;
+            font-family: inherit
+        }
+
+        .jwt-algo-select:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, .5)
+        }
+
+        .jwt-algo-select option {
+            background: #1a1f2e;
+            color: #e2e8f0
+        }
+
+        .jwt-algo-select optgroup {
+            background: #111827;
+            color: #94a3b8;
+            font-style: normal;
+            font-weight: 700
+        }
+
+        .jwt-info {
+            font-size: .72rem;
+            color: rgba(255, 255, 255, .35);
+            margin-top: .3rem
+        }
+
+        .jwt-claims-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .78rem;
+            margin-top: .5rem
+        }
+
+        .jwt-claims-table th {
+            text-align: left;
+            color: rgba(255, 255, 255, .4);
+            font-weight: 600;
+            padding: .3rem .5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            font-size: .7rem;
+            text-transform: uppercase
+        }
+
+        .jwt-claims-table td {
+            padding: .3rem .5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .04);
+            color: rgba(255, 255, 255, .75);
+            word-break: break-all
+        }
+
+        .jwt-claims-table td.claim-name {
+            color: #a5b4fc;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .75rem;
+            white-space: nowrap
+        }
+
+        .jwt-claims-table td.claim-exp {
+            font-size: .7rem;
+            color: rgba(255, 255, 255, .35)
+        }
+
+        .jwt-sample-btn {
+            font-size: .72rem;
+            padding: .2rem .6rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .1);
+            background: rgba(255, 255, 255, .04);
+            color: rgba(255, 255, 255, .55);
+            cursor: pointer;
+            transition: all .15s
+        }
+
+        .jwt-sample-btn:hover {
+            border-color: rgba(99, 102, 241, .4);
+            color: #a5b4fc
+        }
+
+        .jwt-exp-badge {
+            display: inline-block;
+            font-size: .68rem;
+            padding: .1rem .45rem;
+            border-radius: 4px;
+            margin-left: .35rem;
+            font-weight: 600
+        }
+
+        .jwt-exp-badge.expired {
+            background: rgba(248, 113, 113, .12);
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, .2)
+        }
+
+        .jwt-exp-badge.active {
+            background: rgba(34, 197, 94, .1);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, .2)
+        }
+    </style>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon scanner">🔐</div>
+            <h1>JWT Debugger</h1>
+            <p>Decode, inspect, and encode JSON Web Tokens entirely in-browser. Verify HMAC signatures. No data leaves
+                your browser.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="btn-group" style="margin-bottom:1rem">
+                <button class="jwt-sample-btn" id="sample-btn" type="button">📋 Load Sample JWT</button>
+                <button class="jwt-sample-btn" id="clear-btn" type="button">🗑️ Clear</button>
+            </div>
+            <div class="jwt-layout">
+                <!-- LEFT: Encoded -->
+                <div class="jwt-col">
+                    <div class="jwt-panel">
+                        <h3>📝 Encoded Token</h3>
+                        <div class="jwt-encoded-wrap">
+                            <textarea class="jwt-textarea encoded" id="jwt-encoded" spellcheck="false"
+                                placeholder="Paste your JWT here..."></textarea>
+                            <div class="jwt-overlay" id="jwt-overlay"></div>
+                        </div>
+                        <p class="jwt-info">Paste a JWT above. The three parts are color-coded: <span
+                                style="color:#fb7185">header</span><span
+                                style="color:rgba(255,255,255,.3)">.</span><span
+                                style="color:#a78bfa">payload</span><span
+                                style="color:rgba(255,255,255,.3)">.</span><span style="color:#38bdf8">signature</span>
+                        </p>
+                    </div>
+                </div>
+                <!-- RIGHT: Decoded -->
+                <div class="jwt-col">
+                    <div class="jwt-panel">
+                        <div class="jwt-label jwt-label-header">🔴 Header <span style="font-weight:400;opacity:.6">—
+                                ALGORITHM & TOKEN TYPE</span></div>
+                        <textarea class="jwt-decoded-box" id="jwt-header" spellcheck="false" rows="4"
+                            placeholder='{"alg":"HS256","typ":"JWT"}'></textarea>
+                    </div>
+                    <div class="jwt-panel">
+                        <div class="jwt-label jwt-label-payload">🟣 Payload <span style="font-weight:400;opacity:.6">—
+                                DATA</span></div>
+                        <textarea class="jwt-decoded-box" id="jwt-payload" spellcheck="false" rows="8"
+                            placeholder='{"sub":"1234567890","name":"John Doe","iat":1516239022}'></textarea>
+                        <div id="claims-info"></div>
+                    </div>
+                    <div class="jwt-panel">
+                        <div class="jwt-label jwt-label-sig">🔵 Verify Signature</div>
+                        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.6rem">
+                            <select class="jwt-algo-select" id="jwt-algo">
+                                <optgroup label="HMAC (Symmetric)">
+                                    <option value="HS256">HS256 — HMAC SHA-256</option>
+                                    <option value="HS384">HS384 — HMAC SHA-384</option>
+                                    <option value="HS512">HS512 — HMAC SHA-512</option>
+                                </optgroup>
+                                <optgroup label="RSA (Asymmetric)">
+                                    <option value="RS256">RS256 — RSA SHA-256</option>
+                                    <option value="RS384">RS384 — RSA SHA-384</option>
+                                    <option value="RS512">RS512 — RSA SHA-512</option>
+                                </optgroup>
+                                <optgroup label="RSA-PSS (Asymmetric)">
+                                    <option value="PS256">PS256 — RSA-PSS SHA-256</option>
+                                    <option value="PS384">PS384 — RSA-PSS SHA-384</option>
+                                    <option value="PS512">PS512 — RSA-PSS SHA-512</option>
+                                </optgroup>
+                                <optgroup label="ECDSA (Asymmetric)">
+                                    <option value="ES256">ES256 — ECDSA P-256</option>
+                                    <option value="ES384">ES384 — ECDSA P-384</option>
+                                    <option value="ES512">ES512 — ECDSA P-521</option>
+                                </optgroup>
+                                <optgroup label="EdDSA">
+                                    <option value="EdDSA">EdDSA — Ed25519</option>
+                                </optgroup>
+                                <optgroup label="Unsecured">
+                                    <option value="none">none (unsecured)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <input class="jwt-secret-input" id="jwt-secret" type="text" placeholder="your-256-bit-secret"
+                            value="your-256-bit-secret">
+                        <label
+                            style="display:flex;align-items:center;gap:.4rem;margin-top:.5rem;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer">
+                            <input type="checkbox" id="jwt-b64secret" style="accent-color:#6366f1"> secret base64
+                            encoded
+                        </label>
+                        <div id="jwt-verify-result"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script src="jwt-app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nmap Command Builder — Nakanosec Tools</title>
+    <meta name="description"
+        content="Build complex Nmap commands visually with an interactive GUI. Like Zenmap but generates commands only.">
+    <link rel="canonical" href="https://tools.nakanosec.com/nmap/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+    <style>
+        .nmap-grid {
+            display: grid;
+            gap: 1.25rem
+        }
+
+        .opt-section {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .07);
+            border-radius: 12px;
+            padding: 1.1rem 1.25rem
+        }
+
+        .opt-section h3 {
+            font-size: .85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: rgba(255, 255, 255, .45);
+            margin: 0 0 .85rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem
+        }
+
+        .opt-section h3 span {
+            font-size: 1.1rem
+        }
+
+        .opt-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .6rem .9rem;
+            margin-bottom: .65rem
+        }
+
+        .opt-row:last-child {
+            margin-bottom: 0
+        }
+
+        .chk-label {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .72);
+            cursor: pointer;
+            padding: .25rem .5rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, .06);
+            background: rgba(255, 255, 255, .02);
+            transition: all .15s;
+            user-select: none;
+            white-space: nowrap
+        }
+
+        .chk-label:hover {
+            border-color: rgba(99, 102, 241, .4);
+            background: rgba(99, 102, 241, .06)
+        }
+
+        .chk-label input {
+            accent-color: #6366f1
+        }
+
+        .chk-label.radio-label input {
+            accent-color: #6366f1
+        }
+
+        .chk-label .chk-tt {
+            font-size: .7rem;
+            color: rgba(255, 255, 255, .35);
+            font-family: var(--font-mono, 'JetBrains Mono', monospace)
+        }
+
+        .opt-input {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: wrap
+        }
+
+        .opt-input label {
+            font-size: .78rem;
+            color: rgba(255, 255, 255, .55);
+            white-space: nowrap;
+            min-width: 90px
+        }
+
+        .opt-input input,
+        .opt-input select {
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 6px;
+            color: #fff;
+            padding: .35rem .6rem;
+            font-size: .8rem;
+            font-family: inherit
+        }
+
+        .opt-input input {
+            width: 160px
+        }
+
+        .opt-input select {
+            min-width: 140px
+        }
+
+        .opt-input input:focus,
+        .opt-input select:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, .6)
+        }
+
+        .cmd-output {
+            position: relative;
+            margin-top: 1rem
+        }
+
+        .cmd-box {
+            background: #0a0e17;
+            border: 1px solid rgba(99, 102, 241, .25);
+            border-radius: 10px;
+            padding: 1.1rem 1.25rem;
+            font-family: var(--font-mono, 'JetBrains Mono', monospace);
+            font-size: .85rem;
+            color: #a5b4fc;
+            word-break: break-all;
+            line-height: 1.7;
+            min-height: 50px;
+            white-space: pre-wrap
+        }
+
+        .cmd-box .cmd-nmap {
+            color: #c084fc;
+            font-weight: 600
+        }
+
+        .cmd-box .cmd-flag {
+            color: #34d399
+        }
+
+        .cmd-box .cmd-val {
+            color: #fbbf24
+        }
+
+        .cmd-box .cmd-target {
+            color: #f87171;
+            font-weight: 600
+        }
+
+        .preset-bar {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem
+        }
+
+        .preset-btn {
+            font-size: .75rem;
+            padding: .3rem .75rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .04);
+            color: rgba(255, 255, 255, .65);
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap
+        }
+
+        .preset-btn:hover {
+            border-color: rgba(99, 102, 241, .5);
+            color: #a5b4fc;
+            background: rgba(99, 102, 241, .08)
+        }
+
+        .preset-btn.active {
+            border-color: rgba(99, 102, 241, .7);
+            color: #fff;
+            background: rgba(99, 102, 241, .22);
+            box-shadow: 0 0 14px rgba(99, 102, 241, .15)
+        }
+
+        .adv-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            padding: .25rem 0
+        }
+
+        .adv-toggle h2 {
+            margin: 0
+        }
+
+        .adv-chevron {
+            width: 24px;
+            height: 24px;
+            transition: transform .3s ease;
+            color: rgba(255, 255, 255, .4)
+        }
+
+        .adv-chevron.open {
+            transform: rotate(180deg)
+        }
+
+        .adv-body {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height .4s ease
+        }
+
+        .adv-body.open {
+            max-height: 8000px
+        }
+
+        .nse-cats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem
+        }
+
+        .nse-chip {
+            font-size: .72rem;
+            padding: .2rem .55rem;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            background: rgba(255, 255, 255, .03);
+            color: rgba(255, 255, 255, .6);
+            cursor: pointer;
+            transition: all .15s;
+            user-select: none
+        }
+
+        .nse-chip:hover,
+        .nse-chip.active {
+            border-color: rgba(99, 102, 241, .5);
+            color: #a5b4fc;
+            background: rgba(99, 102, 241, .1)
+        }
+
+        @media(max-width:600px) {
+            .opt-input {
+                flex-direction: column;
+                align-items: flex-start
+            }
+
+            .opt-input input {
+                width: 100%
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon scanner">🗺️</div>
+            <h1>Nmap Command Builder</h1>
+            <p>Build complex Nmap scan commands visually. Like Zenmap — but generates the command only, no execution.
+            </p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <!-- Presets -->
+            <div class="tool-card-panel">
+                <h2>⚡ Quick Presets</h2>
+                <div class="preset-bar" id="preset-bar"></div>
+            </div>
+            <!-- Options -->
+            <div class="tool-card-panel">
+                <div class="adv-toggle" id="adv-toggle">
+                    <h2>⚙️ Advanced Scan Options</h2>
+                    <svg class="adv-chevron" id="adv-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </div>
+                <div class="adv-body" id="adv-body">
+                    <div class="nmap-grid" id="nmap-opts" style="margin-top:1rem"></div>
+                </div>
+            </div>
+            <!-- Output -->
+            <div class="tool-card-panel">
+                <h2>📋 Generated Command</h2>
+                <div class="btn-group" style="margin-bottom:.75rem">
+                    <button class="btn btn-primary" id="copy-btn" type="button">Copy Command</button>
+                    <button class="btn btn-secondary" id="reset-btn" type="button">Reset All</button>
+                </div>
+                <div class="cmd-output">
+                    <div class="cmd-box" id="cmd-box"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script src="nmap-data.js"></script>
+    <script src="nmap-app.js"></script>
+</body>
+
+</html>

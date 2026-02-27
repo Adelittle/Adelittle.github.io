@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>.DS_Store Parser — Nakanosec Tools</title>
+    <meta name="description"
+        content="Parse macOS .DS_Store binary files in-browser to extract hidden filenames and directory listings for security reconnaissance.">
+    <link rel="canonical" href="https://tools.nakanosec.com/ds-store/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+    <style>
+        .ds-info-banner {
+            background: rgba(234, 179, 8, 0.08);
+            border: 1px solid rgba(234, 179, 8, 0.25);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.6;
+        }
+
+        .ds-info-banner strong {
+            color: #fbbf24;
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(99, 102, 241, 0.4);
+            border-radius: 12px;
+            padding: 3.5rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            background: rgba(99, 102, 241, 0.03);
+            position: relative;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: rgba(99, 102, 241, 0.8);
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .drop-zone-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .drop-zone-text {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.5rem;
+        }
+
+        .drop-zone-sub {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .result-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .stat-pill {
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 20px;
+            padding: 0.3rem 0.9rem;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .stat-pill span {
+            color: #a5b4fc;
+            font-weight: 600;
+        }
+
+        .file-table-wrap {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            font-family: var(--font-mono, 'JetBrains Mono', monospace);
+        }
+
+        .file-table th {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.6rem 0.9rem;
+            text-align: left;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+        }
+
+        .file-table td {
+            padding: 0.55rem 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.85);
+            vertical-align: middle;
+            word-break: break-all;
+        }
+
+        .file-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .file-table tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .badge-record {
+            display: inline-block;
+            background: rgba(34, 197, 94, 0.12);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 4px;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.7rem;
+            font-family: var(--font-mono, monospace);
+            white-space: nowrap;
+        }
+
+        .error-msg {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.08);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            border-radius: 8px;
+            padding: 0.9rem 1.1rem;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon scanner">🗂️</div>
+            <h1>.DS_Store Parser</h1>
+            <p>Extract hidden filenames and directory listings from macOS <code>.DS_Store</code> binary files. Useful
+                for web server reconnaissance.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+
+            <div class="tool-card-panel">
+                <h2>📂 Upload .DS_Store File</h2>
+                <div class="ds-info-banner">
+                    <strong>What is .DS_Store?</strong> macOS creates <code>.DS_Store</code> files in every folder to
+                    store Finder metadata. When misconfigured web servers expose them, attackers can enumerate the
+                    directory structure. This tool parses the binary format entirely <strong>in-browser — no data is
+                        uploaded</strong>.
+                </div>
+
+                <div class="drop-zone" id="drop-zone">
+                    <span class="drop-zone-icon">📁</span>
+                    <div class="drop-zone-text">Drop <strong>.DS_Store</strong> file here, or click to browse</div>
+                    <div class="drop-zone-sub">Processed locally · No upload · Max 10 MB</div>
+                    <input type="file" id="file-input" accept="*" aria-label="Select .DS_Store file">
+                </div>
+            </div>
+
+            <div class="tool-card-panel" id="output-panel" style="display:none;">
+                <h2>📄 Extracted Entries</h2>
+                <div class="result-stats" id="result-stats"></div>
+                <div class="btn-group" style="margin-bottom:1rem;">
+                    <button class="btn btn-primary" id="copy-list-btn" type="button">Copy Filenames</button>
+                    <button class="btn btn-secondary" id="download-btn" type="button">Download CSV</button>
+                    <button class="btn btn-secondary" id="clear-btn" type="button">Clear</button>
+                </div>
+                <div class="file-table-wrap">
+                    <table class="file-table" id="file-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Filename / Entry</th>
+                                <th>Record Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="file-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="error-display"></div>
+            </div>
+
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+
+            /* =========================================================
+               .DS_Store Binary Parser — Buddy Allocator B-Tree format
+               File layout:
+                 [0..3]   = 00 00 00 01  (alignment prefix)
+                 [4..7]   = 42 75 64 31  ('Bud1' magic)
+                 [8..11]  = root offset (add 4 for real addr)
+                 [12..15] = root size
+                 [16..35] = offsets copy + padding
+               Allocator block at (u32[8] + 4):
+                 [+0] = number of block-offset entries
+                 [+4] = number of free list entries to skip
+                 [+8 + freeEntries*4 + i*4] = block offset entry i
+                       entry: bits[31..5] = base addr, bits[4..0] = size exponent
+                       real_addr = (entry & ~0x1f) + 4
+                       real_size = 1 << (entry & 0x1f)
+               B-Tree node (each block):
+                 [+0] = mode  (0 = leaf, non-zero = internal with child pointers)
+                 [+4] = count (number of records in this node)
+                 [+8..] = records (leaf) OR child_ptr, rec, child_ptr, rec... (internal)
+               Record:
+                 [4] = filename char count (N)
+                 [N*2] = filename in UTF-16BE
+                 [4] = record type (4 ASCII chars)
+                 [4] = data type  ('bool','long','shor','blob','ustr','type','comp','dutc','sibl')
+                 [variable] = data payload (skipped)
+               B-Tree root block number is stored at allocator[+8] — i.e. blockOffsets[0] IS the root.
+               ========================================================= */
+
+            var MAGIC1 = 0x00000001;
+            var MAGIC2 = 0x42756431; // 'Bud1'
+
+            var KNOWN_TYPES = {
+                'Iloc': 'Icon Location', 'bwsp': 'Window Settings',
+                'dilc': 'Desktop Icon Loc', 'dscl': 'Dir Scroll Pos',
+                'fdlo': 'Folder View Options', 'fwi0': 'Finder Window Info',
+                'fwsw': 'Sidebar Width', 'fwvh': 'View Height',
+                'glvp': 'Gallery View', 'icgo': 'Icon Grid Options',
+                'icsp': 'Icon Sort Pos', 'icvo': 'Icon View Options',
+                'info': 'Info', 'lgnd': 'Legend',
+                'lssp': 'List Scroll Pos', 'lsvo': 'List View Options',
+                'modD': 'Mod Date', 'moDD': 'Mod Date (alt)',
+                'phyS': 'Physical Size', 'pict': 'Background Picture',
+                'vSrn': 'View Scroll', 'vstl': 'View Style',
+                'bRsV': 'Browse Row View', 'cmmt': 'Comment',
+                'extn': 'Hidden Extension', 'logS': 'Logical Size',
+                'lg1S': 'Logical Size (64)', 'ph1S': 'Physical Size (64)',
+                'md1D': 'Mod Date (alt2)', 'mo1D': 'Mod Date (alt3)',
+            };
+
+            function u32be(view, o) {
+                return ((view.getUint8(o) << 24) | (view.getUint8(o + 1) << 16) |
+                    (view.getUint8(o + 2) << 8) | view.getUint8(o + 3)) >>> 0;
+            }
+
+            function readUTF16(view, o, n) {
+                var s = '';
+                for (var i = 0; i < n; i++) {
+                    var hi = view.getUint8(o + i * 2);
+                    var lo = view.getUint8(o + i * 2 + 1);
+                    s += String.fromCharCode((hi << 8) | lo);
+                }
+                return s;
+            }
+
+            function readStr4(view, o) {
+                var s = '';
+                for (var i = 0; i < 4; i++) s += String.fromCharCode(view.getUint8(o + i));
+                return s;
+            }
+
+            function parseDSStore(buffer) {
+                var view = new DataView(buffer);
+                var len = buffer.byteLength;
+
+                if (len < 36) throw new Error('File too small (< 36 bytes).');
+
+                var m1 = u32be(view, 0);
+                var m2 = u32be(view, 4);
+                if (m1 !== MAGIC1 || m2 !== MAGIC2) {
+                    throw new Error(
+                        'Not a valid .DS_Store file. Magic bytes: ' +
+                        '0x' + m1.toString(16).padStart(8, '0') + ' ' +
+                        '0x' + m2.toString(16).padStart(8, '0') +
+                        ' (expected 0x00000001 0x42756431)'
+                    );
+                }
+
+                /* --- Parse Buddy Allocator header --- */
+                var allocAddr = u32be(view, 8) + 4;
+                if (allocAddr + 8 > len) throw new Error('Allocator offset out of bounds.');
+
+                var blockCount = u32be(view, allocAddr);
+                var freeListSize = u32be(view, allocAddr + 4);
+                var tableBase = allocAddr + 8 + freeListSize * 4;
+
+                if (tableBase + blockCount * 4 > len) throw new Error('Block table out of bounds.');
+
+                /* Build block list */
+                var blocks = [];
+                for (var i = 0; i < blockCount; i++) {
+                    var raw = u32be(view, tableBase + i * 4);
+                    if (raw === 0) { blocks.push(null); continue; }
+                    var addr = (raw & 0xFFFFFFE0) + 4;
+                    var size = 1 << (raw & 0x1f);
+                    blocks.push({ addr: addr, size: size });
+                }
+
+                var results = [];
+                var seenKey = {};
+
+                /* Read one record starting at pos, returns new pos or -1 on failure */
+                function readRecord(pos, end) {
+                    if (pos + 4 > end) return -1;
+                    var fnLen = u32be(view, pos); pos += 4;
+                    if (fnLen === 0 || fnLen > 1024) return -1;
+                    if (pos + fnLen * 2 > end) return -1;
+
+                    var filename = readUTF16(view, pos, fnLen);
+                    pos += fnLen * 2;
+
+                    if (pos + 8 > end) return -1;
+                    var recType = readStr4(view, pos); pos += 4;
+                    var dataType = readStr4(view, pos); pos += 4;
+
+                    /* Validate data type and skip payload */
+                    if (dataType === 'bool') {
+                        pos += 1;
+                    } else if (dataType === 'long' || dataType === 'shor' ||
+                        dataType === 'type') {
+                        pos += 4;
+                    } else if (dataType === 'comp' || dataType === 'dutc') {
+                        pos += 8; /* 8-byte int64 / date64 */
+                    } else if (dataType === 'blob' || dataType === 'ustr') {
+                        if (pos + 4 > end) return -1;
+                        var dlen = u32be(view, pos); pos += 4;
+                        if (dlen > 131072 || pos + dlen > end) return -1;
+                        pos += dlen;
+                    } else if (dataType === 'sibl') {
+                        pos += 8;
+                    } else {
+                        return -1; /* unknown type — stop */
+                    }
+
+                    /* Only keep printable filenames */
+                    var ok = true;
+                    for (var ci = 0; ci < filename.length; ci++) {
+                        var c = filename.charCodeAt(ci);
+                        if (c < 0x20 && c !== 0x09) { ok = false; break; }
+                    }
+                    if (ok && filename.length > 0) {
+                        var key = filename + '\x00' + recType;
+                        if (!seenKey[key]) {
+                            seenKey[key] = true;
+                            results.push({
+                                filename: filename,
+                                recType: recType,
+                                recTypeFull: KNOWN_TYPES[recType] || recType
+                            });
+                        }
+                    }
+                    return pos;
+                }
+
+                /* Walk one block as a B-tree node.
+                   Layout: [mode u32][count u32][data...]
+                     mode=0  → leaf:     count records back-to-back
+                     mode!=0 → internal: child_u32, rec, child_u32, rec, ..., child_u32
+                   Child values are block NUMBERS (indices into blocks[]).
+                */
+                var visited = {};
+                function walkNode(blockNum, depth) {
+                    if (depth > 30 || visited[blockNum]) return;
+                    visited[blockNum] = true;
+                    if (blockNum >= blocks.length || !blocks[blockNum]) return;
+
+                    var blk = blocks[blockNum];
+                    var base = blk.addr;
+                    var end = base + blk.size;
+                    if (base + 8 > len || end > len) return;
+
+                    var mode = u32be(view, base);
+                    var count = u32be(view, base + 4);
+                    var pos = base + 8;
+                    if (count > 4096) return;
+
+                    if (mode !== 0) {
+                        /* Internal: first child ptr, then (record + child ptr) * count */
+                        if (pos + 4 > end) return;
+                        walkNode(u32be(view, pos), depth + 1); pos += 4;
+                        for (var ri = 0; ri < count; ri++) {
+                            pos = readRecord(pos, end);
+                            if (pos < 0) break;
+                            if (pos + 4 > end) break;
+                            walkNode(u32be(view, pos), depth + 1); pos += 4;
+                        }
+                    } else {
+                        /* Leaf: records only */
+                        for (var ri = 0; ri < count; ri++) {
+                            pos = readRecord(pos, end);
+                            if (pos < 0) break;
+                        }
+                    }
+                }
+
+                /* Find the B-tree root block number.
+                   Block 1 in the offset table is the "master" / directory block.
+                   Its first u32 = the B-tree root block number (index into blocks[]). */
+                var rootBlockNum = -1;
+                if (blocks.length > 1 && blocks[1]) {
+                    var masterAddr = blocks[1].addr;
+                    if (masterAddr + 4 <= len) {
+                        rootBlockNum = u32be(view, masterAddr);
+                    }
+                }
+
+                if (rootBlockNum >= 0 && rootBlockNum < blocks.length) {
+                    walkNode(rootBlockNum, 0);
+                }
+
+                /* Fallback: if root walk found nothing, scan all blocks as leaves */
+                if (results.length === 0) {
+                    for (var bi = 0; bi < blocks.length; bi++) {
+                        if (!blocks[bi] || visited[bi]) continue;
+                        var blk = blocks[bi];
+                        var base = blk.addr, end = blk.addr + blk.size;
+                        if (base + 8 > len || end > len) continue;
+                        var mode = u32be(view, base);
+                        if (mode !== 0) continue; /* only leaves */
+                        var count = u32be(view, base + 4);
+                        if (count === 0 || count > 4096) continue;
+                        var pos = base + 8;
+                        for (var ri = 0; ri < count; ri++) {
+                            pos = readRecord(pos, end);
+                            if (pos < 0) break;
+                        }
+                    }
+                }
+
+                return results;
+            }
+
+            /* ---- UI ---- */
+            var dropZone = document.getElementById('drop-zone');
+            var fileInput = document.getElementById('file-input');
+            var outputPanel = document.getElementById('output-panel');
+            var resultStats = document.getElementById('result-stats');
+            var tbody = document.getElementById('file-tbody');
+            var errorDisplay = document.getElementById('error-display');
+            var copyListBtn = document.getElementById('copy-list-btn');
+            var downloadBtn = document.getElementById('download-btn');
+            var clearBtn = document.getElementById('clear-btn');
+
+            var lastResults = [];
+            var lastFilename = '';
+
+            function escHtml(s) {
+                return String(s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            function showError(msg) {
+                outputPanel.style.display = 'block';
+                tbody.innerHTML = '';
+                resultStats.innerHTML = '';
+                errorDisplay.innerHTML = '<div class="error-msg"><strong>⚠ Error:</strong> ' + escHtml(msg) + '</div>';
+            }
+
+            function renderResults(results, filename) {
+                lastResults = results;
+                lastFilename = filename || '.DS_Store';
+                errorDisplay.innerHTML = '';
+
+                var uniqueNames = {};
+                results.forEach(function (r) { uniqueNames[r.filename] = true; });
+                var uniqueCount = Object.keys(uniqueNames).length;
+
+                resultStats.innerHTML =
+                    '<div class="stat-pill">File: <span>' + escHtml(filename) + '</span></div>' +
+                    '<div class="stat-pill">Total Records: <span>' + results.length + '</span></div>' +
+                    '<div class="stat-pill">Unique Filenames: <span>' + uniqueCount + '</span></div>';
+
+                tbody.innerHTML = '';
+                results.forEach(function (r, idx) {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML =
+                        '<td style="color:rgba(255,255,255,0.3);font-size:0.75rem;">' + (idx + 1) + '</td>' +
+                        '<td>' + escHtml(r.filename) + '</td>' +
+                        '<td><span class="badge-record">' + escHtml(r.recType) + '</span>' +
+                        ' <span style="font-size:0.75rem;opacity:0.55;">' + escHtml(r.recTypeFull) + '</span></td>';
+                    tbody.appendChild(tr);
+                });
+
+                outputPanel.style.display = 'block';
+                outputPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            function processBuffer(buffer, filename) {
+                try {
+                    var results = parseDSStore(buffer);
+                    if (results.length === 0) {
+                        showError('No entries found. The file may be a fresh or empty .DS_Store.');
+                    } else {
+                        renderResults(results, filename);
+                    }
+                } catch (e) {
+                    showError(e.message);
+                }
+            }
+
+            function handleFile(f) {
+                if (!f) return;
+                if (f.size > 10 * 1024 * 1024) { showError('File exceeds 10 MB limit.'); return; }
+                var reader = new FileReader();
+                reader.onload = function (e) { processBuffer(e.target.result, f.name); };
+                reader.readAsArrayBuffer(f);
+            }
+
+            /* ---- File Input ---- */
+            fileInput.addEventListener('change', function () {
+                if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+            });
+
+            /* ---- Drag & Drop ---- */
+            dropZone.addEventListener('dragover', function (e) {
+                e.preventDefault(); dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', function () {
+                dropZone.classList.remove('dragover');
+            });
+            dropZone.addEventListener('drop', function (e) {
+                e.preventDefault(); dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            /* ---- Copy Filenames (unique only) ---- */
+            copyListBtn.addEventListener('click', function () {
+                if (!lastResults.length) return;
+                var unique = {}, lines = [];
+                lastResults.forEach(function (r) {
+                    if (!unique[r.filename]) { unique[r.filename] = true; lines.push(r.filename); }
+                });
+                navigator.clipboard.writeText(lines.join('\n')).then(function () {
+                    copyListBtn.textContent = 'Copied!';
+                    copyListBtn.classList.add('copied');
+                    setTimeout(function () {
+                        copyListBtn.textContent = 'Copy Filenames';
+                        copyListBtn.classList.remove('copied');
+                    }, 2000);
+                });
+            });
+
+            /* ---- Download CSV ---- */
+            downloadBtn.addEventListener('click', function () {
+                if (!lastResults.length) return;
+                var rows = ['#,Filename,RecordType,RecordTypeFull'];
+                lastResults.forEach(function (r, i) {
+                    rows.push((i + 1) + ',"' + r.filename.replace(/"/g, '""') + '","' + r.recType + '","' + r.recTypeFull + '"');
+                });
+                var blob = new Blob([rows.join('\r\n')], { type: 'text/csv' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = lastFilename + '_parsed.csv';
+                a.click();
+            });
+
+            /* ---- Clear ---- */
+            clearBtn.addEventListener('click', function () {
+                outputPanel.style.display = 'none';
+                tbody.innerHTML = '';
+                resultStats.innerHTML = '';
+                errorDisplay.innerHTML = '';
+                lastResults = [];
+                fileInput.value = '';
+            });
+
+        })();
+    </script>
+</body>
+
+</html>

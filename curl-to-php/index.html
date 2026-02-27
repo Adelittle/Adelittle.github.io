@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curl to PHP Converter — Nakanosec Tools</title>
+    <meta name="description"
+        content="Convert cURL command-line requests to PHP code instantly. Supports headers, POST data, authentication, and more.">
+    <link rel="canonical" href="https://tools.nakanosec.com/curl-to-php/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon converter">🔄</div>
+            <h1>Curl to PHP Converter</h1>
+            <p>Paste a cURL command and get clean PHP code using cURL extension functions.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>📥 cURL Command</h2>
+                <div class="form-group">
+                    <label class="form-label" for="curl-input">Paste your curl command</label>
+                    <textarea class="form-textarea" id="curl-input"
+                        placeholder="curl -X POST https://api.example.com/data -H 'Content-Type: application/json' -d '{&quot;key&quot;:&quot;value&quot;}'"
+                        rows="6"></textarea>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="convert-btn" type="button">Convert to PHP</button>
+                    <button class="btn btn-secondary" id="clear-btn" type="button">Clear</button>
+                </div>
+            </div>
+            <div class="tool-card-panel" id="output-panel" style="display:none;">
+                <h2>🐘 PHP Code</h2>
+                <div class="output-area">
+                    <button class="copy-btn" id="copy-btn" type="button">Copy</button>
+                    <pre id="php-output"></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var curlInput = document.getElementById('curl-input');
+            var convertBtn = document.getElementById('convert-btn');
+            var clearBtn = document.getElementById('clear-btn');
+            var outputPanel = document.getElementById('output-panel');
+            var phpOutput = document.getElementById('php-output');
+            var copyBtn = document.getElementById('copy-btn');
+
+            function parseCurl(cmd) {
+                cmd = cmd.replace(/\\\n/g, ' ').trim();
+                if (cmd.indexOf('curl ') !== 0 && cmd.indexOf('curl\t') !== 0) return null;
+                var url = ''; var method = 'GET'; var headers = []; var data = ''; var user = '';
+                var tokens = tokenize(cmd);
+                for (var i = 1; i < tokens.length; i++) {
+                    var t = tokens[i];
+                    if (t === '-X' || t === '--request') { method = tokens[++i] || 'GET'; }
+                    else if (t === '-H' || t === '--header') { headers.push(tokens[++i] || ''); }
+                    else if (t === '-d' || t === '--data' || t === '--data-binary' || t === '--data-raw') { data = tokens[++i] || ''; method = method === 'GET' ? 'POST' : method; }
+                    else if (t === '-u' || t === '--user') { user = tokens[++i] || ''; }
+                    else if (t === '-I' || t === '--head') { method = 'HEAD'; }
+                    else if (t === '--compressed') { /* skip */ }
+                    else if (t === '--url') { url = tokens[++i] || ''; }
+                    else if (t[0] !== '-') { url = t.replace(/^['"]|['"]$/g, ''); }
+                }
+                return { url: url, method: method, headers: headers, data: data, user: user };
+            }
+
+            function tokenize(cmd) {
+                var tokens = []; var current = ''; var inSingle = false; var inDouble = false;
+                for (var i = 0; i < cmd.length; i++) {
+                    var c = cmd[i];
+                    if (c === "'" && !inDouble) { inSingle = !inSingle; continue; }
+                    if (c === '"' && !inSingle) { inDouble = !inDouble; continue; }
+                    if (c === ' ' && !inSingle && !inDouble) {
+                        if (current) { tokens.push(current); current = ''; }
+                        continue;
+                    }
+                    current += c;
+                }
+                if (current) tokens.push(current);
+                return tokens;
+            }
+
+            function toPhp(parsed) {
+                var php = '<?php\n\n$ch = curl_init();\n\n';
+                php += "curl_setopt($ch, CURLOPT_URL, " + phpStr(parsed.url) + ");\n";
+                php += "curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n";
+                if (parsed.method !== 'GET') {
+                    php += "curl_setopt($ch, CURLOPT_CUSTOMREQUEST, " + phpStr(parsed.method) + ");\n";
+                }
+                if (parsed.headers.length > 0) {
+                    php += "curl_setopt($ch, CURLOPT_HTTPHEADER, [\n";
+                    parsed.headers.forEach(function (h) { php += "    " + phpStr(h) + ",\n"; });
+                    php += "]);\n";
+                }
+                if (parsed.data) {
+                    php += "curl_setopt($ch, CURLOPT_POSTFIELDS, " + phpStr(parsed.data) + ");\n";
+                }
+                if (parsed.user) {
+                    php += "curl_setopt($ch, CURLOPT_USERPWD, " + phpStr(parsed.user) + ");\n";
+                }
+                php += "\n$response = curl_exec($ch);\n$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);\ncurl_close($ch);\n\n";
+                php += 'echo "HTTP Code: " . $httpCode . "\\n";\necho $response;\n';
+                return php;
+            }
+
+            function phpStr(s) { return "'" + s.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"; }
+
+            convertBtn.addEventListener('click', function () {
+                var cmd = curlInput.value.trim();
+                if (!cmd) { alert('Please paste a curl command.'); return; }
+                var parsed = parseCurl(cmd);
+                if (!parsed || !parsed.url) { alert('Could not parse the curl command. Make sure it starts with "curl".'); return; }
+                phpOutput.textContent = toPhp(parsed);
+                outputPanel.style.display = 'block';
+            });
+
+            clearBtn.addEventListener('click', function () {
+                curlInput.value = '';
+                outputPanel.style.display = 'none';
+            });
+
+            copyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(phpOutput.textContent).then(function () {
+                    copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+                    setTimeout(function () { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subdomain Scanner — Nakanosec Tools</title>
+    <meta name="description"
+        content="Enumerate subdomains of a target domain using HackerTarget API. Discover hosts and IP addresses for reconnaissance.">
+    <link rel="canonical" href="https://tools.nakanosec.com/subdo/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon scanner">🌐</div>
+            <h1>Subdomain Scanner</h1>
+            <p>Discover subdomains of a target domain using the HackerTarget API for real DNS-based enumeration.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>🎯 Target Domain</h2>
+                <div class="form-group"><label class="form-label" for="target-domain">Enter domain (without
+                        http://)</label><input class="form-input" id="target-domain" placeholder="example.com"
+                        maxlength="253"></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="scan-btn" type="button">Start Scan</button>
+                </div>
+                <div class="status-msg" id="status-msg"></div>
+            </div>
+            <div class="tool-card-panel" id="result-panel" style="display:none;">
+                <h2>📋 Discovered Subdomains (<span id="found-count">0</span>)</h2>
+                <div class="output-area"><button class="copy-btn" id="copy-btn" type="button">Copy</button>
+                    <pre id="scan-output" style="max-height:500px;overflow-y:auto;"></pre>
+                </div>
+            </div>
+            <div class="tool-card-panel">
+                <h2>ℹ️ About</h2>
+                <p style="color:var(--clr-text-secondary);font-size:var(--fs-sm);line-height:1.7;">
+                    This tool uses the <strong>HackerTarget API</strong> to perform passive subdomain enumeration.
+                    Results include discovered hostnames and their resolved IP addresses.
+                    The free API tier has a daily query limit. For more intensive scanning,
+                    consider tools like Subfinder, Amass, or Sublist3r.
+                </p>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var domainInput = document.getElementById('target-domain');
+            var scanBtn = document.getElementById('scan-btn');
+            var resultPanel = document.getElementById('result-panel');
+            var scanOutput = document.getElementById('scan-output');
+            var foundCount = document.getElementById('found-count');
+            var statusMsg = document.getElementById('status-msg');
+            var copyBtn = document.getElementById('copy-btn');
+
+            scanBtn.addEventListener('click', function () {
+                var domain = domainInput.value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+                if (!domain || domain.indexOf('.') === -1) {
+                    showMsg('Please enter a valid domain (e.g. example.com).', 'error');
+                    return;
+                }
+
+                /* Sanitize: only allow valid domain characters */
+                if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain)) {
+                    showMsg('Invalid domain format.', 'error');
+                    return;
+                }
+
+                scanBtn.disabled = true;
+                scanBtn.textContent = 'Scanning...';
+                resultPanel.style.display = 'block';
+                scanOutput.textContent = 'Querying HackerTarget API...\n';
+                foundCount.textContent = '0';
+                showMsg('Scanning subdomains for ' + domain + '...', 'info');
+
+                var apiUrl = 'https://api.hackertarget.com/hostsearch/?q=' + encodeURIComponent(domain);
+
+                fetch(apiUrl)
+                    .then(function (response) {
+                        if (!response.ok) throw new Error('API request failed (HTTP ' + response.status + ')');
+                        return response.text();
+                    })
+                    .then(function (data) {
+                        data = data.trim();
+
+                        /* Check for API error messages */
+                        if (!data || data.indexOf('error') === 0 || data.indexOf('API count exceeded') !== -1) {
+                            scanOutput.textContent = data || 'No results returned.';
+                            foundCount.textContent = '0';
+                            showMsg(data.indexOf('API count exceeded') !== -1
+                                ? 'API daily limit exceeded. Try again tomorrow.'
+                                : 'No subdomains found or API error.', 'error');
+                            return;
+                        }
+
+                        /* Parse results: each line is "hostname,ip" */
+                        var lines = data.split('\n').filter(function (l) { return l.trim(); });
+                        var output = '';
+
+                        lines.forEach(function (line) {
+                            var parts = line.split(',');
+                            var host = parts[0] || '';
+                            var ip = parts[1] || '';
+                            output += host.padEnd(45) + ip + '\n';
+                        });
+
+                        scanOutput.textContent = output;
+                        foundCount.textContent = String(lines.length);
+                        showMsg('Scan complete! Found ' + lines.length + ' subdomain(s).', 'success');
+                    })
+                    .catch(function (err) {
+                        scanOutput.textContent = 'Error: ' + err.message + '\n\nThis may be due to CORS restrictions when running locally.\nThe tool will work correctly when deployed to GitHub Pages.';
+                        showMsg('Scan failed: ' + err.message, 'error');
+                    })
+                    .finally(function () {
+                        scanBtn.disabled = false;
+                        scanBtn.textContent = 'Start Scan';
+                    });
+            });
+
+            copyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(scanOutput.textContent).then(function () {
+                    copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+                    setTimeout(function () { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+                });
+            });
+
+            function showMsg(msg, type) { statusMsg.textContent = msg; statusMsg.className = 'status-msg show ' + type; }
+        })();
+    </script>
+</body>
+
+</html>

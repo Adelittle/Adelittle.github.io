@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clickjacking Vulnerability Tester — Nakanosec Tools</title>
+    <meta name="description"
+        content="Test if a website is vulnerable to clickjacking attacks by checking X-Frame-Options and CSP frame-ancestors headers.">
+    <link rel="canonical" href="https://tools.nakanosec.com/cj/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon scanner">🖱️</div>
+            <h1>Clickjacking Vulnerability Tester</h1>
+            <p>Check if a target website can be framed — a prerequisite for clickjacking attacks.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>🎯 Target URL</h2>
+                <div class="form-group">
+                    <label class="form-label" for="target-url">Enter URL to test</label>
+                    <input class="form-input" type="url" id="target-url" placeholder="https://example.com"
+                        maxlength="2048">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="test-btn" type="button">Test for Clickjacking</button>
+                    <button class="btn btn-secondary" id="clear-btn" type="button">Clear</button>
+                </div>
+            </div>
+            <div class="tool-card-panel" id="result-panel" style="display:none;">
+                <h2>🖼️ Frame Test</h2>
+                <div class="cj-frame-container" id="frame-container"></div>
+                <div id="cj-result" class="cj-result" style="display:none;"></div>
+                <p style="color:var(--clr-text-muted);font-size:var(--fs-xs);margin-top:1rem;">If the website loads
+                    inside the frame above, it may be vulnerable to clickjacking. If it appears blank or shows an error,
+                    the site likely has X-Frame-Options or CSP frame-ancestors protections.</p>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var urlInput = document.getElementById('target-url');
+            var testBtn = document.getElementById('test-btn');
+            var clearBtn = document.getElementById('clear-btn');
+            var resultPanel = document.getElementById('result-panel');
+            var frameContainer = document.getElementById('frame-container');
+            var cjResult = document.getElementById('cj-result');
+
+            testBtn.addEventListener('click', function () {
+                var url = urlInput.value.trim();
+                if (!url || !/^https?:\/\//i.test(url)) { alert('Please enter a valid URL starting with http:// or https://'); return; }
+                frameContainer.innerHTML = '';
+                var iframe = document.createElement('iframe');
+                iframe.src = url;
+                iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+                iframe.id = 'test-iframe';
+                frameContainer.appendChild(iframe);
+                resultPanel.style.display = 'block';
+
+                cjResult.style.display = 'block';
+                cjResult.className = 'cj-result';
+                cjResult.textContent = 'Loading... Check if the page renders inside the frame above.';
+                cjResult.style.background = 'rgba(56, 189, 248, 0.1)';
+                cjResult.style.color = 'var(--clr-accent-cyan)';
+                cjResult.style.border = '1px solid rgba(56, 189, 248, 0.2)';
+
+                iframe.addEventListener('load', function () {
+                    cjResult.className = 'cj-result vulnerable';
+                    cjResult.textContent = '⚠️ POTENTIALLY VULNERABLE: The page loaded inside the iframe. This site may be susceptible to clickjacking attacks.';
+                });
+
+                iframe.addEventListener('error', function () {
+                    cjResult.className = 'cj-result safe';
+                    cjResult.textContent = '✅ PROTECTED: The page could not be framed. X-Frame-Options or CSP frame-ancestors is likely configured.';
+                });
+            });
+
+            clearBtn.addEventListener('click', function () {
+                urlInput.value = '';
+                resultPanel.style.display = 'none';
+                frameContainer.innerHTML = '';
+                cjResult.style.display = 'none';
+            });
+        })();
+    </script>
+</body>
+
+</html>

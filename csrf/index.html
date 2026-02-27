@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSRF PoC Generator — Nakanosec Tools</title>
+    <meta name="description"
+        content="Generate CSRF proof-of-concept payloads from raw HTTP requests. Paste your BurpSuite request and get a ready-to-use CSRF PoC form.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://tools.nakanosec.com/csrf/">
+    <meta property="og:title" content="CSRF PoC Generator — Nakanosec Tools">
+    <meta property="og:description"
+        content="Generate CSRF proof-of-concept payloads from raw HTTP requests for security testing.">
+    <meta property="og:url" content="https://tools.nakanosec.com/csrf/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner">
+            <a href="../" class="tool-header-back" id="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                All Tools
+            </a>
+            <span class="tool-header-brand">Nakanosec<span>Tools</span></span>
+        </div>
+    </header>
+
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon generator">⚡</div>
+            <h1>CSRF PoC Generator</h1>
+            <p>Paste a raw HTTP request from BurpSuite and generate a ready-to-use CSRF proof-of-concept HTML form.</p>
+        </div>
+    </section>
+
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>📋 HTTP Request Input</h2>
+                <div class="form-group">
+                    <label class="form-label" for="raw-request">Paste Raw HTTP Request</label>
+                    <textarea class="form-textarea" id="raw-request"
+                        placeholder="POST /change-email HTTP/1.1&#10;Host: example.com&#10;Content-Type: application/x-www-form-urlencoded&#10;Cookie: session=abc123&#10;&#10;email=attacker@evil.com"
+                        rows="10"></textarea>
+                </div>
+                <div class="checkbox-group">
+                    <label class="checkbox-label"><input type="checkbox" id="auto-submit"> Auto-submit form</label>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="generate-btn" type="button">Generate CSRF PoC</button>
+                    <button class="btn btn-secondary" id="clear-btn" type="button">Clear</button>
+                </div>
+            </div>
+
+            <div class="tool-card-panel" id="output-panel" style="display:none;">
+                <h2>🎯 Generated CSRF PoC</h2>
+                <div class="output-area">
+                    <button class="copy-btn" id="copy-btn" type="button">Copy</button>
+                    <pre id="output-code"></pre>
+                </div>
+                <div class="status-msg" id="status-msg"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            'use strict';
+            var rawInput = document.getElementById('raw-request');
+            var autoSubmit = document.getElementById('auto-submit');
+            var generateBtn = document.getElementById('generate-btn');
+            var clearBtn = document.getElementById('clear-btn');
+            var outputPanel = document.getElementById('output-panel');
+            var outputCode = document.getElementById('output-code');
+            var copyBtn = document.getElementById('copy-btn');
+            var statusMsg = document.getElementById('status-msg');
+
+            function escapeHtml(str) {
+                return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            function parseRequest(raw) {
+                var lines = raw.replace(/\r\n/g, '\n').split('\n');
+                if (lines.length === 0) return null;
+                var firstLine = lines[0].trim().split(/\s+/);
+                var method = firstLine[0] || 'POST';
+                var path = firstLine[1] || '/';
+                var host = '';
+                var contentType = '';
+                var bodyStart = -1;
+                for (var i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '') { bodyStart = i + 1; break; }
+                    var parts = lines[i].split(':');
+                    var hName = parts[0].trim().toLowerCase();
+                    var hVal = parts.slice(1).join(':').trim();
+                    if (hName === 'host') host = hVal;
+                    if (hName === 'content-type') contentType = hVal;
+                }
+                var body = bodyStart > 0 ? lines.slice(bodyStart).join('\n').trim() : '';
+                var url = (host ? 'https://' + host : '') + path;
+                return { method: method, url: url, body: body, contentType: contentType };
+            }
+
+            function generatePoC(req) {
+                var html = '<html>\n<head>\n  <title>CSRF PoC</title>\n</head>\n<body>\n';
+                html += '  <h1>CSRF Proof of Concept</h1>\n';
+                html += '  <form action="' + escapeHtml(req.url) + '" method="' + escapeHtml(req.method) + '"';
+                if (req.contentType && req.contentType.indexOf('multipart') !== -1) {
+                    html += ' enctype="multipart/form-data"';
+                }
+                html += '>\n';
+                if (req.body) {
+                    var pairs = req.body.split('&');
+                    for (var i = 0; i < pairs.length; i++) {
+                        var kv = pairs[i].split('=');
+                        var name = decodeURIComponent(kv[0] || '');
+                        var value = decodeURIComponent(kv.slice(1).join('=') || '');
+                        html += '    <input type="hidden" name="' + escapeHtml(name) + '" value="' + escapeHtml(value) + '" />\n';
+                    }
+                }
+                html += '    <input type="submit" value="Submit" />\n';
+                html += '  </form>\n';
+                if (autoSubmit.checked) {
+                    html += '  <script>document.forms[0].submit();<\/script>\n';
+                }
+                html += '</body>\n</html>';
+                return html;
+            }
+
+            generateBtn.addEventListener('click', function () {
+                var raw = rawInput.value.trim();
+                if (!raw) {
+                    statusMsg.textContent = 'Please paste a raw HTTP request.';
+                    statusMsg.className = 'status-msg show error';
+                    return;
+                }
+                var req = parseRequest(raw);
+                if (!req) {
+                    statusMsg.textContent = 'Invalid request format.';
+                    statusMsg.className = 'status-msg show error';
+                    return;
+                }
+                var poc = generatePoC(req);
+                outputCode.textContent = poc;
+                outputPanel.style.display = 'block';
+                statusMsg.textContent = 'CSRF PoC generated successfully!';
+                statusMsg.className = 'status-msg show success';
+            });
+
+            clearBtn.addEventListener('click', function () {
+                rawInput.value = '';
+                outputPanel.style.display = 'none';
+                outputCode.textContent = '';
+                statusMsg.className = 'status-msg';
+            });
+
+            copyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(outputCode.textContent).then(function () {
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.classList.add('copied');
+                    setTimeout(function () { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

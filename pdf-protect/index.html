@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Password Protector — Nakanosec Tools</title>
+    <meta name="description"
+        content="Add password protection to PDF files entirely in your browser. No upload, no server — 100% client-side encryption.">
+    <link rel="canonical" href="https://tools.nakanosec.com/pdf-protect/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+    <style>
+        .pdf-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem
+        }
+
+        @media(max-width:900px) {
+            .pdf-layout {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .pdf-panel {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .07);
+            border-radius: 12px;
+            padding: 1.25rem 1.4rem
+        }
+
+        .pdf-panel h3 {
+            font-size: .82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: rgba(255, 255, 255, .45);
+            margin: 0 0 .9rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem
+        }
+
+        .pdf-drop {
+            border: 2px dashed rgba(99, 102, 241, .3);
+            border-radius: 10px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all .25s;
+            background: rgba(99, 102, 241, .03)
+        }
+
+        .pdf-drop:hover,
+        .pdf-drop.dragover {
+            border-color: rgba(99, 102, 241, .6);
+            background: rgba(99, 102, 241, .08)
+        }
+
+        .pdf-drop-icon {
+            font-size: 2.5rem;
+            margin-bottom: .7rem;
+            display: block
+        }
+
+        .pdf-drop-text {
+            color: rgba(255, 255, 255, .5);
+            font-size: .85rem
+        }
+
+        .pdf-drop-text strong {
+            color: #a5b4fc
+        }
+
+        .pdf-file-info {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .75rem 1rem;
+            background: rgba(99, 102, 241, .06);
+            border: 1px solid rgba(99, 102, 241, .2);
+            border-radius: 8px;
+            margin-top: .75rem
+        }
+
+        .pdf-file-icon {
+            font-size: 1.5rem
+        }
+
+        .pdf-file-details {
+            flex: 1
+        }
+
+        .pdf-file-name {
+            font-size: .82rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            word-break: break-all
+        }
+
+        .pdf-file-size {
+            font-size: .72rem;
+            color: rgba(255, 255, 255, .4);
+            margin-top: .15rem
+        }
+
+        .pdf-file-remove {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, .3);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: .2rem;
+            transition: color .15s
+        }
+
+        .pdf-file-remove:hover {
+            color: #f87171
+        }
+
+        .pdf-field {
+            display: flex;
+            flex-direction: column;
+            gap: .35rem;
+            margin-bottom: 1rem
+        }
+
+        .pdf-field label {
+            font-size: .75rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, .5);
+            text-transform: uppercase;
+            letter-spacing: .04em
+        }
+
+        .pdf-field input[type="password"],
+        .pdf-field input[type="text"] {
+            width: 100%;
+            background: #0a0e17;
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 8px;
+            padding: .55rem .8rem;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .85rem
+        }
+
+        .pdf-field input:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, .5)
+        }
+
+        .pdf-toggle-pw {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, .35);
+            cursor: pointer;
+            font-size: .75rem;
+            padding: .15rem .4rem;
+            border-radius: 4px;
+            transition: color .15s
+        }
+
+        .pdf-toggle-pw:hover {
+            color: #a5b4fc
+        }
+
+        .pdf-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center
+        }
+
+        .pdf-input-wrap input {
+            flex: 1
+        }
+
+        .pdf-input-wrap .pdf-toggle-pw {
+            position: absolute;
+            right: .5rem
+        }
+
+        .pdf-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: .35rem;
+            transition: all .3s;
+            background: rgba(255, 255, 255, .06)
+        }
+
+        .pdf-strength-bar {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .3s, background .3s;
+            width: 0
+        }
+
+        .pdf-strength-label {
+            font-size: .68rem;
+            color: rgba(255, 255, 255, .35);
+            margin-top: .2rem;
+            text-align: right
+        }
+
+        .pdf-perms {
+            display: flex;
+            flex-direction: column;
+            gap: .45rem;
+            margin-bottom: 1rem
+        }
+
+        .pdf-perm-label {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .78rem;
+            color: rgba(255, 255, 255, .6);
+            cursor: pointer;
+            user-select: none
+        }
+
+        .pdf-perm-label input {
+            accent-color: #6366f1
+        }
+
+        .pdf-action-btn {
+            width: 100%;
+            padding: .7rem 1rem;
+            border-radius: 10px;
+            border: none;
+            font-size: .9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem
+        }
+
+        .pdf-action-btn.primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, .3)
+        }
+
+        .pdf-action-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 25px rgba(99, 102, 241, .4)
+        }
+
+        .pdf-action-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important
+        }
+
+        .pdf-status {
+            margin-top: .75rem;
+            padding: .6rem .9rem;
+            border-radius: 8px;
+            font-size: .8rem;
+            display: none
+        }
+
+        .pdf-status.success {
+            display: block;
+            background: rgba(34, 197, 94, .1);
+            border: 1px solid rgba(34, 197, 94, .25);
+            color: #86efac
+        }
+
+        .pdf-status.error {
+            display: block;
+            background: rgba(248, 113, 113, .08);
+            border: 1px solid rgba(248, 113, 113, .2);
+            color: #fca5a5
+        }
+
+        .pdf-status.loading {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            background: rgba(99, 102, 241, .08);
+            border: 1px solid rgba(99, 102, 241, .2);
+            color: #a5b4fc
+        }
+
+        .pdf-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(99, 102, 241, .3);
+            border-top-color: #a5b4fc;
+            border-radius: 50%;
+            animation: spin .6s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .pdf-note {
+            font-size: .72rem;
+            color: rgba(255, 255, 255, .3);
+            margin-top: .75rem;
+            line-height: 1.5
+        }
+
+        .pdf-note strong {
+            color: rgba(255, 255, 255, .5)
+        }
+
+        .pdf-progress {
+            margin-top: .5rem;
+            height: 6px;
+            background: rgba(255, 255, 255, .06);
+            border-radius: 3px;
+            overflow: hidden
+        }
+
+        .pdf-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 3px;
+            transition: width .3s;
+            width: 0
+        }
+    </style>
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon scanner">🔒</div>
+            <h1>PDF Password Protector</h1>
+            <p>Add password protection to your PDF files entirely in-browser. No upload, no server — your files never
+                leave your device.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="pdf-layout">
+                <div>
+                    <div class="pdf-panel">
+                        <h3>📄 Select PDF File</h3>
+                        <div class="pdf-drop" id="pdf-drop">
+                            <span class="pdf-drop-icon">📁</span>
+                            <div class="pdf-drop-text"><strong>Click to browse</strong> or drag & drop<br>Max file size:
+                                <strong>30 MB</strong></div>
+                        </div>
+                        <input type="file" id="pdf-file" accept=".pdf" style="display:none">
+                        <div id="pdf-file-info" style="display:none"></div>
+                        <p class="pdf-note"><strong>🔒 Privacy:</strong> Everything runs in your browser. Your PDF is
+                            never uploaded to any server.</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="pdf-panel">
+                        <h3>🔑 Password Settings</h3>
+                        <div class="pdf-field">
+                            <label>User Password <span style="font-weight:400;opacity:.6">(required to
+                                    open)</span></label>
+                            <div class="pdf-input-wrap">
+                                <input type="password" id="pdf-user-pw" placeholder="Enter password to open the PDF">
+                                <button class="pdf-toggle-pw" id="toggle-user-pw" type="button">👁</button>
+                            </div>
+                            <div class="pdf-strength">
+                                <div class="pdf-strength-bar" id="pw-strength-bar"></div>
+                            </div>
+                            <div class="pdf-strength-label" id="pw-strength-label"></div>
+                        </div>
+                        <div class="pdf-field">
+                            <label>Confirm Password</label>
+                            <div class="pdf-input-wrap">
+                                <input type="password" id="pdf-confirm-pw" placeholder="Re-enter password">
+                                <button class="pdf-toggle-pw" id="toggle-confirm-pw" type="button">👁</button>
+                            </div>
+                            <div id="pw-match-msg" style="font-size:.72rem;margin-top:.2rem"></div>
+                        </div>
+                        <div class="pdf-field">
+                            <label>Owner Password <span style="font-weight:400;opacity:.6">(optional)</span></label>
+                            <div class="pdf-input-wrap">
+                                <input type="password" id="pdf-owner-pw"
+                                    placeholder="Leave empty to use same as user password">
+                                <button class="pdf-toggle-pw" id="toggle-owner-pw" type="button">👁</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pdf-panel" style="margin-top:1rem">
+                        <h3>⚙️ Permissions</h3>
+                        <div class="pdf-perms">
+                            <label class="pdf-perm-label"><input type="checkbox" id="perm-print" checked> Allow
+                                Printing</label>
+                            <label class="pdf-perm-label"><input type="checkbox" id="perm-copy"> Allow
+                                Copy/Extract</label>
+                            <label class="pdf-perm-label"><input type="checkbox" id="perm-modify"> Allow
+                                Modifications</label>
+                            <label class="pdf-perm-label"><input type="checkbox" id="perm-annotate" checked> Allow
+                                Annotations</label>
+                        </div>
+                        <button class="pdf-action-btn primary" id="pdf-protect-btn" type="button" disabled>
+                            🔐 Protect & Download PDF
+                        </button>
+                        <div class="pdf-status" id="pdf-status"></div>
+                        <div class="pdf-progress" id="pdf-progress" style="display:none">
+                            <div class="pdf-progress-bar" id="pdf-progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Configure pdf.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <script src="pdf-app.js"></script>
+</body>
+
+</html>

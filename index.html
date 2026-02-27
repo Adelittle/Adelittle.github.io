@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; connect-src https://www.nakanosec.com https://www.blogger.com; img-src 'self' data: https:;">
+    <title>Nakanosec Tools — Free Online Cybersecurity Utilities</title>
+    <meta name="description"
+        content="Free online cybersecurity tools by Nakanosec. CSRF generator, CORS scanner, hash identifier, password generator, and more for ethical penetration testing.">
+    <meta name="keywords"
+        content="cybersecurity tools, penetration testing, CSRF generator, CORS scanner, hash identifier, online security tools, ethical hacking">
+    <meta name="author" content="Nakanosec">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://tools.nakanosec.com/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Nakanosec Tools — Free Online Cybersecurity Utilities">
+    <meta property="og:description"
+        content="Free online cybersecurity tools for ethical penetration testing. CSRF generator, CORS scanner, hash tools, and more.">
+    <meta property="og:url" content="https://tools.nakanosec.com/">
+    <meta property="og:site_name" content="Nakanosec Tools">
+    <meta property="og:image" content="https://tools.nakanosec.com/og-image.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Nakanosec Tools — Free Online Cybersecurity Utilities">
+    <meta name="twitter:description" content="Free online cybersecurity tools for ethical penetration testing.">
+    <meta name="twitter:image" content="https://tools.nakanosec.com/og-image.png">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Nakanosec Tools",
+        "url": "https://tools.nakanosec.com/",
+        "description": "Free online cybersecurity tools for ethical penetration testing.",
+        "publisher": {
+            "@type": "Organization",
+            "name": "Nakanosec",
+            "url": "https://www.nakanosec.com/"
+        }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Cybersecurity Tools",
+        "numberOfItems": 18,
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "CSRF Generator", "url": "https://tools.nakanosec.com/csrf"},
+            {"@type": "ListItem", "position": 2, "name": "CORS Scanner", "url": "https://tools.nakanosec.com/cors.html"},
+            {"@type": "ListItem", "position": 3, "name": "Clickjacking Test", "url": "https://tools.nakanosec.com/cj.html"},
+            {"@type": "ListItem", "position": 4, "name": "Curl To PHP", "url": "https://tools.nakanosec.com/curl-to-php"},
+            {"@type": "ListItem", "position": 5, "name": "CVSS Calculator", "url": "https://tools.nakanosec.com/cvss"},
+            {"@type": "ListItem", "position": 6, "name": "JSO Generator", "url": "https://tools.nakanosec.com/jso.html"},
+            {"@type": "ListItem", "position": 7, "name": "Crontab Generator", "url": "https://tools.nakanosec.com/cron.html"},
+            {"@type": "ListItem", "position": 8, "name": "Subdomain Scanner", "url": "https://tools.nakanosec.com/subdo.html"},
+            {"@type": "ListItem", "position": 9, "name": "Hash Identifier", "url": "https://tools.nakanosec.com/Hash-Identifier"},
+            {"@type": "ListItem", "position": 10, "name": "MD5 Generator", "url": "https://tools.nakanosec.com/MD5-Online-Generator"},
+            {"@type": "ListItem", "position": 11, "name": "URL Encode/Decode", "url": "https://tools.nakanosec.com/URL-Encode-Decode"},
+            {"@type": "ListItem", "position": 12, "name": "URL Manipulation", "url": "https://tools.nakanosec.com/URL-Manipulation"},
+            {"@type": "ListItem", "position": 13, "name": "Base64 Encode/Decode", "url": "https://tools.nakanosec.com/base64-decode-encode"},
+            {"@type": "ListItem", "position": 14, "name": "Password Generator", "url": "https://tools.nakanosec.com/Random-Password-Generator"},
+            {"@type": "ListItem", "position": 15, "name": ".DS_Store Parser", "url": "https://tools.nakanosec.com/ds-store"},
+            {"@type": "ListItem", "position": 16, "name": "Nmap Command Builder", "url": "https://tools.nakanosec.com/nmap"},
+            {"@type": "ListItem", "position": 17, "name": "JWT Debugger", "url": "https://tools.nakanosec.com/jwt"},
+            {"@type": "ListItem", "position": 18, "name": "PDF Password Protector", "url": "https://tools.nakanosec.com/pdf-protect"}
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <!-- Header / Navigation -->
+    <header class="site-header" id="site-header">
+        <div class="container header-inner">
+            <a href="#" class="logo" id="logo-link">
+                <span class="logo-icon">⟁</span>
+                <span class="logo-text">Nakanosec<span class="logo-accent">Tools</span></span>
+            </a>
+            <nav class="main-nav" id="main-nav">
+                <a href="#tools-section" class="nav-link" id="nav-tools">Tools</a>
+                <a href="#blog-section" class="nav-link" id="nav-blog">Blog</a>
+                <a href="https://www.nakanosec.com/" class="nav-link" id="nav-main-site" target="_blank"
+                    rel="noopener noreferrer">Main Site</a>
+            </nav>
+            <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation menu"
+                aria-expanded="false">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="hero-section">
+            <div class="hero-bg-grid"></div>
+            <div class="hero-glow hero-glow-1"></div>
+            <div class="hero-glow hero-glow-2"></div>
+            <div class="container hero-inner">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    Free &amp; Open Source
+                </div>
+                <h1 class="hero-title">
+                    Cybersecurity <span class="gradient-text">Tools</span><br>
+                    at Your Fingertips
+                </h1>
+                <p class="hero-subtitle">
+                    A curated collection of free online utilities for ethical penetration testing,
+                    vulnerability assessment, and security research.
+                </p>
+                <div class="hero-actions">
+                    <a href="#tools-section" class="btn btn-primary" id="hero-cta">
+                        <span>Explore Tools</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17" />
+                        </svg>
+                    </a>
+                    <a href="https://www.nakanosec.com/" class="btn btn-ghost" id="hero-blog-cta" target="_blank"
+                        rel="noopener noreferrer">
+                        Read Our Blog
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">18</span>
+                        <span class="stat-label">Tools</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Free</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-number">0</span>
+                        <span class="stat-label">Sign-ups Required</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tools Section -->
+        <section class="tools-section" id="tools-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">Arsenal</span>
+                    <h2 class="section-title">Security Tools</h2>
+                    <p class="section-subtitle">Browser-based utilities for penetration testers and security
+                        researchers. No installation needed.</p>
+                </div>
+
+                <!-- Search & Filter -->
+                <div class="tools-controls" id="tools-controls">
+                    <div class="search-wrapper" id="search-wrapper">
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="M21 21l-4.35-4.35" />
+                        </svg>
+                        <input type="text" class="search-input" id="search-input" placeholder="Search tools..."
+                            autocomplete="off" maxlength="100">
+                    </div>
+                    <div class="filter-buttons" id="filter-buttons">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Tools Grid -->
+                <div class="tools-grid" id="tools-grid">
+                    <!-- Populated by JS -->
+                </div>
+                <p class="no-results" id="no-results" hidden>No tools match your search. Try a different keyword.</p>
+            </div>
+        </section>
+
+        <!-- Blog Section -->
+        <section class="blog-section" id="blog-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">Knowledge Base</span>
+                    <h2 class="section-title">Latest from the Blog</h2>
+                    <p class="section-subtitle">Stay updated with our latest cybersecurity research, tutorials, and
+                        write-ups.</p>
+                </div>
+
+                <div class="blog-grid" id="blog-grid">
+                    <!-- Loading skeleton -->
+                    <div class="blog-card skeleton" aria-hidden="true">
+                        <div class="skeleton-line skeleton-title"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line skeleton-short"></div>
+                    </div>
+                    <div class="blog-card skeleton" aria-hidden="true">
+                        <div class="skeleton-line skeleton-title"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line skeleton-short"></div>
+                    </div>
+                    <div class="blog-card skeleton" aria-hidden="true">
+                        <div class="skeleton-line skeleton-title"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line skeleton-short"></div>
+                    </div>
+                    <div class="blog-card skeleton" aria-hidden="true">
+                        <div class="skeleton-line skeleton-title"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line skeleton-short"></div>
+                    </div>
+                    <div class="blog-card skeleton" aria-hidden="true">
+                        <div class="skeleton-line skeleton-title"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line skeleton-short"></div>
+                    </div>
+                    <div class="blog-card skeleton" aria-hidden="true">
+                        <div class="skeleton-line skeleton-title"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line skeleton-short"></div>
+                    </div>
+                </div>
+
+                <div class="blog-error" id="blog-error" hidden>
+                    <p>Unable to load blog posts. Please visit <a href="https://www.nakanosec.com/" target="_blank"
+                            rel="noopener noreferrer">nakanosec.com</a> directly.</p>
+                </div>
+
+                <div class="section-footer">
+                    <a href="https://www.nakanosec.com/" class="btn btn-outline" id="blog-view-all" target="_blank"
+                        rel="noopener noreferrer">
+                        View All Posts
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer" id="site-footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <span class="logo-icon">⟁</span>
+                <span class="footer-name">Nakanosec Tools</span>
+                <p class="footer-tagline">Free cybersecurity utilities for ethical hackers.</p>
+            </div>
+            <div class="footer-links">
+                <h3 class="footer-heading">Quick Links</h3>
+                <a href="#tools-section" class="footer-link" id="footer-tools">Tools</a>
+                <a href="#blog-section" class="footer-link" id="footer-blog">Blog</a>
+                <a href="https://www.nakanosec.com/p/blog-page.html" class="footer-link" target="_blank"
+                    rel="noopener noreferrer" id="footer-about">About Us</a>
+                <a href="https://www.nakanosec.com/p/contac.html" class="footer-link" target="_blank"
+                    rel="noopener noreferrer" id="footer-contact">Contact</a>
+            </div>
+            <div class="footer-links">
+                <h3 class="footer-heading">Legal</h3>
+                <a href="https://www.nakanosec.com/p/policy-for-nakanosec-nakanosec.html" class="footer-link"
+                    target="_blank" rel="noopener noreferrer" id="footer-privacy">Privacy Policy</a>
+                <a href="https://www.nakanosec.com/p/tos.html" class="footer-link" target="_blank"
+                    rel="noopener noreferrer" id="footer-tos">Terms of Service</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2024 Nakanosec. All tools provided for ethical and authorized security testing only.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="index.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Encode/Decode — Nakanosec Tools</title>
+    <meta name="description"
+        content="Encode or decode Base64 strings instantly in your browser for data transformation and payload analysis.">
+    <link rel="canonical" href="https://tools.nakanosec.com/base64/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon encoder">📝</div>
+            <h1>Base64 Encode / Decode</h1>
+            <p>Encode or decode Base64 strings for data transformation and payload analysis.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>📥 Input</h2>
+                <div class="form-group"><label class="form-label" for="text-input">Text or Base64
+                        string</label><textarea class="form-textarea" id="text-input"
+                        placeholder="Enter plain text to encode, or Base64 string to decode..." rows="5"></textarea>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="encode-btn" type="button">Encode to Base64</button>
+                    <button class="btn btn-primary" id="decode-btn" type="button"
+                        style="background:linear-gradient(135deg,#a78bfa,#f472b6);">Decode from Base64</button>
+                    <button class="btn btn-secondary" id="clear-btn" type="button">Clear</button>
+                </div>
+            </div>
+            <div class="tool-card-panel" id="output-panel" style="display:none;">
+                <h2>📤 Result</h2>
+                <div class="output-area"><button class="copy-btn" id="copy-btn" type="button">Copy</button>
+                    <pre id="output-text"></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var inputEl = document.getElementById('text-input');
+            var encodeBtn = document.getElementById('encode-btn');
+            var decodeBtn = document.getElementById('decode-btn');
+            var clearBtn = document.getElementById('clear-btn');
+            var outputPanel = document.getElementById('output-panel');
+            var outputText = document.getElementById('output-text');
+            var copyBtn = document.getElementById('copy-btn');
+
+            function utf8ToB64(str) { return btoa(unescape(encodeURIComponent(str))); }
+            function b64ToUtf8(str) { return decodeURIComponent(escape(atob(str))); }
+
+            encodeBtn.addEventListener('click', function () {
+                var t = inputEl.value; if (!t) return;
+                try { outputText.textContent = utf8ToB64(t); } catch (e) { outputText.textContent = 'Error: Could not encode.'; }
+                outputPanel.style.display = 'block';
+            });
+            decodeBtn.addEventListener('click', function () {
+                var t = inputEl.value.trim(); if (!t) return;
+                try { outputText.textContent = b64ToUtf8(t); } catch (e) { outputText.textContent = 'Error: Invalid Base64 string.'; }
+                outputPanel.style.display = 'block';
+            });
+            clearBtn.addEventListener('click', function () { inputEl.value = ''; outputPanel.style.display = 'none'; });
+            copyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(outputText.textContent).then(function () {
+                    copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+                    setTimeout(function () { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSO Overlay Generator — Nakanosec Tools</title>
+    <meta name="description"
+        content="Generate JavaScript overlay payloads for testing website defacement scenarios in authorized penetration tests.">
+    <link rel="canonical" href="https://tools.nakanosec.com/jso/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon generator">🎭</div>
+            <h1>JSO Overlay Generator</h1>
+            <p>Create JavaScript overlay payloads for authorized defacement testing scenarios.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>⚙️ Overlay Settings</h2>
+                <div class="form-group"><label class="form-label" for="jso-title">Title Text</label><input
+                        class="form-input" id="jso-title" placeholder="Hacked by YourName" maxlength="200"></div>
+                <div class="form-group"><label class="form-label" for="jso-subtitle">Subtitle / Message</label><input
+                        class="form-input" id="jso-subtitle" placeholder="This is a security test." maxlength="500">
+                </div>
+                <div class="form-group"><label class="form-label" for="jso-bg">Background Color</label><input
+                        class="form-input" id="jso-bg" type="color" value="#000000" style="height:44px;padding:4px;">
+                </div>
+                <div class="form-group"><label class="form-label" for="jso-color">Text Color</label><input
+                        class="form-input" id="jso-color" type="color" value="#00ff00" style="height:44px;padding:4px;">
+                </div>
+                <div class="form-group"><label class="form-label" for="jso-img">Image URL (optional)</label><input
+                        class="form-input" id="jso-img" placeholder="https://example.com/image.png" maxlength="2048">
+                </div>
+                <div class="form-group"><label class="form-label" for="jso-encode">Encode Script</label>
+                    <select class="form-input" id="jso-encode">
+                        <option value="plain">Plain (no encoding)</option>
+                        <option value="base64">Base64 (eval + atob)</option>
+                        <option value="hex">Hex (eval + decodeURIComponent)</option>
+                    </select>
+                </div>
+                <div class="btn-group"><button class="btn btn-primary" id="gen-btn" type="button">Generate
+                        Payload</button></div>
+            </div>
+            <div class="tool-card-panel" id="output-panel" style="display:none;">
+                <h2>📄 Generated Payload</h2>
+                <div class="output-area"><button class="copy-btn" id="copy-btn" type="button">Copy</button>
+                    <pre id="output-code"></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var genBtn = document.getElementById('gen-btn'),
+                outputPanel = document.getElementById('output-panel'),
+                outputCode = document.getElementById('output-code'),
+                copyBtn = document.getElementById('copy-btn');
+
+            function esc(s) {
+                return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+            }
+
+            function buildOverlayScript(t, s, bg, clr, img) {
+                var inner = '';
+                inner += "var _o=document.createElement('div');";
+                inner += "_o.id='__jso_overlay';";
+                inner += "_o.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:" + esc(bg) + ";color:" + esc(clr) + ";display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2147483647;font-family:monospace;text-align:center;';";
+                if (img) {
+                    inner += "var _i=document.createElement('img');_i.src='" + esc(img) + "';_i.style.cssText='max-width:300px;margin-bottom:20px;border:none;';_o.appendChild(_i);";
+                }
+                inner += "var _h=document.createElement('h1');_h.textContent='" + esc(t) + "';_h.style.cssText='font-size:3rem;margin:0 0 12px;';_o.appendChild(_h);";
+                if (s) {
+                    inner += "var _p=document.createElement('p');_p.textContent='" + esc(s) + "';_p.style.cssText='font-size:1.2rem;margin:0;opacity:0.8;';_o.appendChild(_p);";
+                }
+                inner += "document.body.appendChild(_o);";
+                return inner;
+            }
+
+            genBtn.addEventListener('click', function () {
+                var t = document.getElementById('jso-title').value || 'Hacked';
+                var s = document.getElementById('jso-subtitle').value || '';
+                var bg = document.getElementById('jso-bg').value;
+                var clr = document.getElementById('jso-color').value;
+                var img = document.getElementById('jso-img').value;
+                var enc = document.getElementById('jso-encode').value;
+
+                var inner = buildOverlayScript(t, s, bg, clr, img);
+                var code;
+
+                if (enc === 'base64') {
+                    var b64 = btoa(unescape(encodeURIComponent(inner)));
+                    code = '<script>eval(atob("' + b64 + '"));<\/script>';
+                } else if (enc === 'hex') {
+                    var hex = '';
+                    for (var i = 0; i < inner.length; i++) {
+                        hex += '%' + ('0' + inner.charCodeAt(i).toString(16)).slice(-2);
+                    }
+                    code = '<script>eval(decodeURIComponent("' + hex + '"));<\/script>';
+                } else {
+                    code = '<script>' + inner + '<\/script>';
+                }
+
+                outputCode.textContent = code;
+                outputPanel.style.display = 'block';
+            });
+
+            copyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(outputCode.textContent).then(function () {
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.classList.add('copied');
+                    setTimeout(function () {
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVSS v3.1 Calculator — Nakanosec Tools</title>
+    <meta name="description"
+        content="Interactive CVSS v3.1 Base Score Calculator. Select metrics and get instant vulnerability severity scoring with visual feedback.">
+    <link rel="canonical" href="https://tools.nakanosec.com/cvss/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon scanner">📊</div>
+            <h1>CVSS v3.1 Base Score Calculator</h1>
+            <p>Calculate Common Vulnerability Scoring System base scores interactively.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>📐 Base Metrics</h2>
+                <div class="cvss-grid" id="cvss-metrics"></div>
+            </div>
+            <div class="tool-card-panel">
+                <h2>🎯 Score</h2>
+                <div class="cvss-score-display">
+                    <div class="cvss-score-number" id="cvss-score">0.0</div>
+                    <div class="cvss-score-label" id="cvss-label">None</div>
+                </div>
+                <div class="output-area" style="margin-top:1rem;">
+                    <button class="copy-btn" id="copy-vector" type="button">Copy Vector</button>
+                    <pre id="cvss-vector"
+                        style="min-height:auto;padding:0.75rem;">CVSS:3.1/AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_</pre>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var METRICS = [
+                { id: 'AV', name: 'Attack Vector', options: [{ l: 'Network', v: 'N', s: 0.85 }, { l: 'Adjacent', v: 'A', s: 0.62 }, { l: 'Local', v: 'L', s: 0.55 }, { l: 'Physical', v: 'P', s: 0.2 }] },
+                { id: 'AC', name: 'Attack Complexity', options: [{ l: 'Low', v: 'L', s: 0.77 }, { l: 'High', v: 'H', s: 0.44 }] },
+                { id: 'PR', name: 'Privileges Required', options: [{ l: 'None', v: 'N', s: 0.85 }, { l: 'Low', v: 'L', s: 0.62 }, { l: 'High', v: 'H', s: 0.27 }] },
+                { id: 'UI', name: 'User Interaction', options: [{ l: 'None', v: 'N', s: 0.85 }, { l: 'Required', v: 'R', s: 0.62 }] },
+                { id: 'S', name: 'Scope', options: [{ l: 'Unchanged', v: 'U', s: 0 }, { l: 'Changed', v: 'C', s: 1 }] },
+                { id: 'C', name: 'Confidentiality', options: [{ l: 'None', v: 'N', s: 0 }, { l: 'Low', v: 'L', s: 0.22 }, { l: 'High', v: 'H', s: 0.56 }] },
+                { id: 'I', name: 'Integrity', options: [{ l: 'None', v: 'N', s: 0 }, { l: 'Low', v: 'L', s: 0.22 }, { l: 'High', v: 'H', s: 0.56 }] },
+                { id: 'A', name: 'Availability', options: [{ l: 'None', v: 'N', s: 0 }, { l: 'Low', v: 'L', s: 0.22 }, { l: 'High', v: 'H', s: 0.56 }] }
+            ];
+            var selected = {};
+            var metricsEl = document.getElementById('cvss-metrics');
+            var scoreEl = document.getElementById('cvss-score');
+            var labelEl = document.getElementById('cvss-label');
+            var vectorEl = document.getElementById('cvss-vector');
+            var copyVectorBtn = document.getElementById('copy-vector');
+
+            METRICS.forEach(function (m) {
+                var div = document.createElement('div');
+                div.className = 'cvss-metric';
+                var lab = document.createElement('div');
+                lab.className = 'cvss-metric-label';
+                lab.textContent = m.name;
+                var opts = document.createElement('div');
+                opts.className = 'cvss-options';
+                m.options.forEach(function (o) {
+                    var btn = document.createElement('button');
+                    btn.className = 'cvss-option';
+                    btn.textContent = o.l;
+                    btn.type = 'button';
+                    btn.addEventListener('click', function () {
+                        selected[m.id] = o;
+                        var siblings = opts.querySelectorAll('.cvss-option');
+                        for (var i = 0; i < siblings.length; i++) siblings[i].classList.remove('selected');
+                        btn.classList.add('selected');
+                        calculate();
+                    });
+                    opts.appendChild(btn);
+                });
+                div.appendChild(lab);
+                div.appendChild(opts);
+                metricsEl.appendChild(div);
+            });
+
+            function calculate() {
+                if (Object.keys(selected).length < 8) { scoreEl.textContent = '—'; labelEl.textContent = 'Select all metrics'; updateVector(); return; }
+                var av = selected.AV.s, ac = selected.AC.s, pr = selected.PR.s, ui = selected.UI.s;
+                var scopeChanged = selected.S.v === 'C';
+                var c = selected.C.s, i = selected.I.s, a = selected.A.s;
+                if (scopeChanged && selected.PR.v === 'L') pr = 0.68;
+                if (scopeChanged && selected.PR.v === 'H') pr = 0.50;
+                var iss = 1 - ((1 - c) * (1 - i) * (1 - a));
+                var impact, exploitability = 8.22 * av * ac * pr * ui;
+                if (!scopeChanged) {
+                    impact = 6.42 * iss;
+                } else {
+                    impact = 7.52 * (iss - 0.029) - 3.25 * Math.pow(iss - 0.02, 15);
+                }
+                var score;
+                if (impact <= 0) { score = 0; }
+                else if (!scopeChanged) { score = Math.min(impact + exploitability, 10); score = Math.ceil(score * 10) / 10; }
+                else { score = Math.min(1.08 * (impact + exploitability), 10); score = Math.ceil(score * 10) / 10; }
+                scoreEl.textContent = score.toFixed(1);
+                var severity = getSeverity(score);
+                labelEl.textContent = severity.label;
+                scoreEl.className = 'cvss-score-number ' + severity.cls;
+                labelEl.className = 'cvss-score-label ' + severity.cls;
+                updateVector();
+            }
+
+            function getSeverity(s) {
+                if (s === 0) return { label: 'None', cls: 'cvss-severity-none' };
+                if (s <= 3.9) return { label: 'Low', cls: 'cvss-severity-low' };
+                if (s <= 6.9) return { label: 'Medium', cls: 'cvss-severity-medium' };
+                if (s <= 8.9) return { label: 'High', cls: 'cvss-severity-high' };
+                return { label: 'Critical', cls: 'cvss-severity-critical' };
+            }
+
+            function updateVector() {
+                var v = 'CVSS:3.1';
+                METRICS.forEach(function (m) { v += '/' + m.id + ':' + (selected[m.id] ? selected[m.id].v : '_'); });
+                vectorEl.textContent = v;
+            }
+
+            copyVectorBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(vectorEl.textContent).then(function () {
+                    copyVectorBtn.textContent = 'Copied!'; copyVectorBtn.classList.add('copied');
+                    setTimeout(function () { copyVectorBtn.textContent = 'Copy Vector'; copyVectorBtn.classList.remove('copied'); }, 2000);
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

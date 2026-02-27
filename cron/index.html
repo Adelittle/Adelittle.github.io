@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crontab Expression Generator — Nakanosec Tools</title>
+    <meta name="description"
+        content="Build and validate crontab schedule expressions with an intuitive online interface. Visual feedback with human-readable descriptions.">
+    <link rel="canonical" href="https://tools.nakanosec.com/cron/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon generator">⏰</div>
+            <h1>Crontab Expression Generator</h1>
+            <p>Build cron expressions visually with human-readable descriptions.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>🕐 Schedule Fields</h2>
+                <div class="cron-fields">
+                    <div class="cron-field"><label for="cron-min">Minute</label><input id="cron-min" value="*"
+                            maxlength="20"></div>
+                    <div class="cron-field"><label for="cron-hour">Hour</label><input id="cron-hour" value="*"
+                            maxlength="20"></div>
+                    <div class="cron-field"><label for="cron-dom">Day (M)</label><input id="cron-dom" value="*"
+                            maxlength="20"></div>
+                    <div class="cron-field"><label for="cron-month">Month</label><input id="cron-month" value="*"
+                            maxlength="20"></div>
+                    <div class="cron-field"><label for="cron-dow">Day (W)</label><input id="cron-dow" value="*"
+                            maxlength="20"></div>
+                </div>
+                <div class="form-group"><label class="form-label" for="cron-cmd">Command</label><input
+                        class="form-input" id="cron-cmd" placeholder="/path/to/script.sh" maxlength="500"></div>
+                <h3 style="font-size:var(--fs-sm);color:var(--clr-text-muted);margin:1rem 0 0.75rem;">Quick Presets</h3>
+                <div class="btn-group" style="margin-top:0;">
+                    <button class="btn btn-secondary" type="button" data-preset="* * * * *">Every Minute</button>
+                    <button class="btn btn-secondary" type="button" data-preset="0 * * * *">Every Hour</button>
+                    <button class="btn btn-secondary" type="button" data-preset="0 0 * * *">Daily</button>
+                    <button class="btn btn-secondary" type="button" data-preset="0 0 * * 0">Weekly</button>
+                    <button class="btn btn-secondary" type="button" data-preset="0 0 1 * *">Monthly</button>
+                </div>
+            </div>
+            <div class="tool-card-panel">
+                <h2>📋 Result</h2>
+                <div class="cron-expression" id="cron-expr">* * * * *</div>
+                <div class="cron-readable" id="cron-desc">Every minute</div>
+                <div class="output-area" style="margin-top:1.5rem;">
+                    <button class="copy-btn" id="copy-btn" type="button">Copy</button>
+                    <pre id="cron-full" style="min-height:auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var fields = ['cron-min', 'cron-hour', 'cron-dom', 'cron-month', 'cron-dow'];
+            var cmdInput = document.getElementById('cron-cmd');
+            var exprEl = document.getElementById('cron-expr');
+            var descEl = document.getElementById('cron-desc');
+            var fullEl = document.getElementById('cron-full');
+            var copyBtn = document.getElementById('copy-btn');
+
+            function update() {
+                var parts = fields.map(function (id) { return document.getElementById(id).value.trim() || '*'; });
+                var expr = parts.join(' ');
+                exprEl.textContent = expr;
+                descEl.textContent = describe(parts);
+                var cmd = cmdInput.value.trim() || '/path/to/command';
+                fullEl.textContent = expr + ' ' + cmd;
+            }
+
+            function describe(p) {
+                var m = p[0], h = p[1], dom = p[2], mo = p[3], dow = p[4];
+                if (m === '*' && h === '*' && dom === '*' && mo === '*' && dow === '*') return 'Every minute';
+                if (m === '0' && h === '*' && dom === '*' && mo === '*' && dow === '*') return 'Every hour at minute 0';
+                if (m === '0' && h === '0' && dom === '*' && mo === '*' && dow === '*') return 'Every day at midnight';
+                if (m === '0' && h === '0' && dom === '*' && mo === '*' && dow === '0') return 'Every Sunday at midnight';
+                if (m === '0' && h === '0' && dom === '1' && mo === '*' && dow === '*') return 'First day of every month at midnight';
+                var desc = 'At ';
+                desc += m === '*' ? 'every minute' : 'minute ' + m;
+                desc += h === '*' ? ' of every hour' : ' past hour ' + h;
+                if (dom !== '*') desc += ', on day ' + dom + ' of the month';
+                if (mo !== '*') desc += ', in month ' + mo;
+                if (dow !== '*') { var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; desc += ', on ' + (days[parseInt(dow)] || 'day ' + dow); }
+                return desc;
+            }
+
+            fields.forEach(function (id) { document.getElementById(id).addEventListener('input', update); });
+            cmdInput.addEventListener('input', update);
+
+            document.querySelectorAll('[data-preset]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var parts = btn.getAttribute('data-preset').split(' ');
+                    for (var i = 0; i < fields.length; i++) document.getElementById(fields[i]).value = parts[i] || '*';
+                    update();
+                });
+            });
+
+            copyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(fullEl.textContent).then(function () {
+                    copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+                    setTimeout(function () { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+                });
+            });
+
+            update();
+        })();
+    </script>
+</body>
+
+</html>

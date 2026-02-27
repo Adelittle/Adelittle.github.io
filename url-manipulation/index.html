@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Manipulation Tool — Nakanosec Tools</title>
+    <meta name="description"
+        content="Batch add or remove HTTP/HTTPS protocols from URL lists for reconnaissance and automation workflows.">
+    <link rel="canonical" href="https://tools.nakanosec.com/url-manipulation/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon converter">🛠️</div>
+            <h1>Mass URL Manipulation</h1>
+            <p>Batch add or remove HTTP/HTTPS protocols from URL lists.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>📋 URL List</h2>
+                <div class="form-group"><label class="form-label" for="url-input">Enter URLs (one per
+                        line)</label><textarea class="form-textarea" id="url-input"
+                        placeholder="example.com&#10;https://test.com&#10;http://another.com" rows="8"></textarea></div>
+                <div class="form-group">
+                    <label class="form-label" for="action-select">Action</label>
+                    <select class="form-select" id="action-select">
+                        <option value="add-https">Add https://</option>
+                        <option value="add-http">Add http://</option>
+                        <option value="remove">Remove http:// and https://</option>
+                        <option value="force-https">Force https:// (replace http with https)</option>
+                    </select>
+                </div>
+                <div class="btn-group"><button class="btn btn-primary" id="process-btn" type="button">Process
+                        URLs</button><button class="btn btn-secondary" id="clear-btn" type="button">Clear</button></div>
+            </div>
+            <div class="tool-card-panel" id="output-panel" style="display:none;">
+                <h2>📤 Result</h2>
+                <div class="output-area"><button class="copy-btn" id="copy-btn" type="button">Copy</button>
+                    <pre id="output-text"></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var urlInput = document.getElementById('url-input');
+            var actionSelect = document.getElementById('action-select');
+            var processBtn = document.getElementById('process-btn');
+            var clearBtn = document.getElementById('clear-btn');
+            var outputPanel = document.getElementById('output-panel');
+            var outputText = document.getElementById('output-text');
+            var copyBtn = document.getElementById('copy-btn');
+
+            function stripProtocol(u) { return u.replace(/^https?:\/\//i, ''); }
+
+            processBtn.addEventListener('click', function () {
+                var urls = urlInput.value.trim().split('\n').filter(function (l) { return l.trim(); });
+                if (!urls.length) return;
+                var action = actionSelect.value;
+                var result = urls.map(function (url) {
+                    url = url.trim();
+                    switch (action) {
+                        case 'add-https': return 'https://' + stripProtocol(url);
+                        case 'add-http': return 'http://' + stripProtocol(url);
+                        case 'remove': return stripProtocol(url);
+                        case 'force-https': return 'https://' + stripProtocol(url);
+                        default: return url;
+                    }
+                });
+                outputText.textContent = result.join('\n');
+                outputPanel.style.display = 'block';
+            });
+
+            clearBtn.addEventListener('click', function () { urlInput.value = ''; outputPanel.style.display = 'none'; });
+            copyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(outputText.textContent).then(function () {
+                    copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+                    setTimeout(function () { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

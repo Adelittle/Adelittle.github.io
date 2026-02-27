@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Misconfiguration Scanner — Nakanosec Tools</title>
+    <meta name="description"
+        content="Test any URL for CORS misconfigurations. Detect wildcard origins, null origin, and credential exposure vulnerabilities.">
+    <link rel="canonical" href="https://tools.nakanosec.com/cors/">
+    <meta property="og:title" content="CORS Scanner — Nakanosec Tools">
+    <meta property="og:description" content="Detect CORS misconfigurations and vulnerabilities in target domains.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner">
+            <a href="../" class="tool-header-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a>
+            <span class="tool-header-brand">Nakanosec<span>Tools</span></span>
+        </div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon scanner">🔍</div>
+            <h1>CORS Misconfiguration Scanner</h1>
+            <p>Check if a target URL has Cross-Origin Resource Sharing misconfigurations that could lead to data theft.
+            </p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>🌐 Target URL</h2>
+                <div class="form-group">
+                    <label class="form-label" for="target-url">Enter URL to scan</label>
+                    <input class="form-input" type="url" id="target-url" placeholder="https://example.com/api/endpoint"
+                        maxlength="2048">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="scan-btn" type="button">Scan for CORS Issues</button>
+                    <button class="btn btn-secondary" id="clear-btn" type="button">Clear</button>
+                </div>
+            </div>
+            <div class="tool-card-panel" id="result-panel" style="display:none;">
+                <h2>📊 Scan Results</h2>
+                <div class="output-area">
+                    <pre id="scan-output"></pre>
+                </div>
+                <div class="status-msg" id="status-msg"></div>
+            </div>
+            <div class="tool-card-panel">
+                <h2>ℹ️ About CORS Vulnerabilities</h2>
+                <p style="color:var(--clr-text-secondary);font-size:var(--fs-sm);line-height:1.7;">
+                    CORS (Cross-Origin Resource Sharing) misconfigurations can allow malicious websites to read
+                    sensitive data from your API. Common issues include reflecting the Origin header without validation,
+                    allowing null origins, and exposing credentials to any origin. This tool checks response headers to
+                    identify potential vulnerabilities.
+                </p>
+                <p style="color:var(--clr-text-muted);font-size:var(--fs-xs);margin-top:0.75rem;">
+                    <strong>Note:</strong> Due to browser security restrictions, this client-side scanner has limited
+                    capabilities. For comprehensive testing, use a server-side tool or BurpSuite.
+                </p>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var urlInput = document.getElementById('target-url');
+            var scanBtn = document.getElementById('scan-btn');
+            var clearBtn = document.getElementById('clear-btn');
+            var resultPanel = document.getElementById('result-panel');
+            var scanOutput = document.getElementById('scan-output');
+            var statusMsg = document.getElementById('status-msg');
+
+            scanBtn.addEventListener('click', function () {
+                var url = urlInput.value.trim();
+                if (!url) { showStatus('Please enter a valid URL.', 'error'); return; }
+                if (!/^https?:\/\//i.test(url)) { showStatus('URL must start with http:// or https://', 'error'); return; }
+                scanOutput.textContent = 'Scanning...\n';
+                resultPanel.style.display = 'block';
+                var origins = [url, 'https://evil.com', 'null'];
+                var results = [];
+                var done = 0;
+                origins.forEach(function (origin, idx) {
+                    fetch(url, { method: 'GET', mode: 'cors', headers: { 'Origin': origin } })
+                        .then(function (res) {
+                            var acao = res.headers.get('Access-Control-Allow-Origin') || 'Not set';
+                            var acac = res.headers.get('Access-Control-Allow-Credentials') || 'Not set';
+                            results[idx] = 'Origin: ' + origin + '\n  ACAO: ' + acao + '\n  ACAC: ' + acac + '\n';
+                        })
+                        .catch(function () {
+                            results[idx] = 'Origin: ' + origin + '\n  Result: Request blocked (CORS or network error)\n';
+                        })
+                        .finally(function () {
+                            done++;
+                            if (done === origins.length) {
+                                var output = '=== CORS Scan Results ===\n\n';
+                                results.forEach(function (r) { output += r + '\n'; });
+                                output += '\n=== Analysis ===\n';
+                                var fullText = results.join('');
+                                if (fullText.indexOf('evil.com') !== -1 && fullText.indexOf('ACAO: https://evil.com') !== -1) {
+                                    output += '⚠️  WARNING: Server reflects arbitrary origins!\n';
+                                }
+                                if (fullText.indexOf('ACAO: *') !== -1) {
+                                    output += '⚠️  WARNING: Wildcard (*) Access-Control-Allow-Origin detected.\n';
+                                }
+                                if (fullText.indexOf('ACAO: null') !== -1) {
+                                    output += '⚠️  WARNING: null origin is allowed.\n';
+                                }
+                                if (fullText.indexOf('ACAC: true') !== -1) {
+                                    output += '⚠️  WARNING: Credentials are allowed.\n';
+                                }
+                                if (output.indexOf('WARNING') === -1) {
+                                    output += '✅ No obvious CORS misconfigurations detected from client-side.\n';
+                                }
+                                scanOutput.textContent = output;
+                                showStatus('Scan complete.', 'success');
+                            }
+                        });
+                });
+            });
+
+            clearBtn.addEventListener('click', function () {
+                urlInput.value = '';
+                resultPanel.style.display = 'none';
+                statusMsg.className = 'status-msg';
+            });
+
+            function showStatus(msg, type) {
+                statusMsg.textContent = msg;
+                statusMsg.className = 'status-msg show ' + type;
+            }
+        })();
+    </script>
+</body>
+
+</html>

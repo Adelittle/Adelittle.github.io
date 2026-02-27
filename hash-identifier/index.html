@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Identifier — Nakanosec Tools</title>
+    <meta name="description"
+        content="Identify the hashing algorithm used to generate any hash string. Supports MD5, SHA-1, SHA-256, SHA-512, bcrypt, and more.">
+    <link rel="canonical" href="https://tools.nakanosec.com/hash-identifier/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="tool-header">
+        <div class="container tool-header-inner"><a href="../" class="tool-header-back"><svg viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>All Tools</a><span class="tool-header-brand">Nakanosec<span>Tools</span></span></div>
+    </header>
+    <section class="tool-hero">
+        <div class="container">
+            <div class="tool-hero-icon encoder">#️⃣</div>
+            <h1>Hash Identifier</h1>
+            <p>Paste a hash string and identify the algorithm used to generate it.</p>
+        </div>
+    </section>
+    <main class="tool-workspace">
+        <div class="container">
+            <div class="tool-card-panel">
+                <h2>🔍 Input Hash</h2>
+                <div class="form-group"><label class="form-label" for="hash-input">Paste hash to identify</label><input
+                        class="form-input" id="hash-input" placeholder="e.g. 5d41402abc4b2a76b9719d911017c592"
+                        maxlength="1024" style="font-family:var(--font-mono);"></div>
+                <div class="btn-group"><button class="btn btn-primary" id="identify-btn" type="button">Identify
+                        Hash</button><button class="btn btn-secondary" id="clear-btn" type="button">Clear</button></div>
+            </div>
+            <div class="tool-card-panel" id="result-panel" style="display:none;">
+                <h2>📊 Possible Algorithms</h2>
+                <div id="results-list"></div>
+            </div>
+        </div>
+    </main>
+    <footer class="tool-footer">
+        <div class="container">
+            <p>&copy; 2024 <a href="../">Nakanosec Tools</a> — For authorized security testing only.</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            'use strict';
+            var HASHES = [
+                { name: 'MD5', regex: /^[a-f0-9]{32}$/i },
+                { name: 'SHA-1', regex: /^[a-f0-9]{40}$/i },
+                { name: 'SHA-224', regex: /^[a-f0-9]{56}$/i },
+                { name: 'SHA-256', regex: /^[a-f0-9]{64}$/i },
+                { name: 'SHA-384', regex: /^[a-f0-9]{96}$/i },
+                { name: 'SHA-512', regex: /^[a-f0-9]{128}$/i },
+                { name: 'RIPEMD-160', regex: /^[a-f0-9]{40}$/i },
+                { name: 'MySQL (old)', regex: /^[a-f0-9]{16}$/i },
+                { name: 'MySQL5', regex: /^\*[a-f0-9]{40}$/i },
+                { name: 'NTLM', regex: /^[a-f0-9]{32}$/i },
+                { name: 'bcrypt', regex: /^\$2[aby]?\$\d{1,2}\$.{53}$/ },
+                { name: 'Argon2', regex: /^\$argon2(i|d|id)\$.+$/ },
+                { name: 'CRC32', regex: /^[a-f0-9]{8}$/i },
+                { name: 'LM Hash', regex: /^[a-f0-9]{32}$/i },
+                { name: 'MD4', regex: /^[a-f0-9]{32}$/i },
+                { name: 'Whirlpool', regex: /^[a-f0-9]{128}$/i },
+                { name: 'SHA3-256', regex: /^[a-f0-9]{64}$/i },
+                { name: 'SHA3-512', regex: /^[a-f0-9]{128}$/i },
+                { name: 'DES(Unix)', regex: /^.{13}$/ },
+                { name: 'MD5(Unix)', regex: /^\$1\$.{8}\$.{22}$/ },
+                { name: 'SHA-256(Unix)', regex: /^\$5\$.+\$.{43}$/ },
+                { name: 'SHA-512(Unix)', regex: /^\$6\$.+\$.{86}$/ }
+            ];
+            var hashInput = document.getElementById('hash-input');
+            var identifyBtn = document.getElementById('identify-btn');
+            var clearBtn = document.getElementById('clear-btn');
+            var resultPanel = document.getElementById('result-panel');
+            var resultsList = document.getElementById('results-list');
+
+            identifyBtn.addEventListener('click', function () {
+                var hash = hashInput.value.trim();
+                if (!hash) { alert('Please enter a hash.'); return; }
+                var matches = [];
+                HASHES.forEach(function (h) { if (h.regex.test(hash)) matches.push(h.name); });
+                resultsList.innerHTML = '';
+                resultPanel.style.display = 'block';
+                if (matches.length === 0) {
+                    var p = document.createElement('p');
+                    p.style.cssText = 'color:var(--clr-text-muted);';
+                    p.textContent = 'No matching hash algorithm found. The hash may be truncated or use an uncommon format.';
+                    resultsList.appendChild(p);
+                    return;
+                }
+                matches.forEach(function (name, idx) {
+                    var div = document.createElement('div');
+                    div.style.cssText = 'padding:0.75rem 1rem;background:rgba(56,189,248,0.05);border:1px solid var(--clr-border);border-radius:var(--radius-md);margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;';
+                    var badge = document.createElement('span');
+                    badge.textContent = idx === 0 ? 'Most Likely' : 'Possible';
+                    badge.style.cssText = 'font-size:var(--fs-xs);font-weight:600;padding:0.2rem 0.5rem;border-radius:var(--radius-sm);' + (idx === 0 ? 'background:rgba(52,211,153,0.15);color:var(--clr-accent-green);' : 'background:rgba(56,189,248,0.1);color:var(--clr-accent-cyan);');
+                    var nameEl = document.createElement('span');
+                    nameEl.textContent = name;
+                    nameEl.style.cssText = 'font-weight:600;font-family:var(--font-mono);';
+                    div.appendChild(badge);
+                    div.appendChild(nameEl);
+                    resultsList.appendChild(div);
+                });
+            });
+
+            clearBtn.addEventListener('click', function () { hashInput.value = ''; resultPanel.style.display = 'none'; });
+        })();
+    </script>
+</body>
+
+</html>
